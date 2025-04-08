@@ -105,7 +105,8 @@ class TrackNameWindow:
                     self.INPUT_TEXT_ERROR = "Track name cannot be empty"
             elif event.key == pygame.K_RETURN:
                 if self.check_track_name():
-                    self.GAME_STATE.set_state(AvailableSteps.SELECT_MAP)
+                    self.GAME_STATE.TRACK_NAME = self.INPUT_TEXT
+                    self.GAME_STATE.set_state(AvailableSteps.DRAW_TRACK)
                     self.EXIT_LOOP = True
             elif event.key == pygame.K_ESCAPE:
                 self.GAME_STATE.set_previous_state()

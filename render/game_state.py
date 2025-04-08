@@ -1,23 +1,25 @@
 import os
 import pygame
 
-from constants import WIDTH, HEIGHT, CHECKPOINT_DIR
+from constants import WIDTH, HEIGHT, CHECKPOINT_FOLDER
 from data_models import AvailableSteps, History, CarPreviewData
 
 
 class GameState:
-    HISTORY: list[History] = []
     PREVIOUS_STATES: list[AvailableSteps] = []
     CURRENT_STATE: AvailableSteps = AvailableSteps.MAIN_MENU
-    CAR_PREVIEW_DATA = CarPreviewData(
-        car_scale=1.0,
-        car_rotation=0.0,
-        car_scale_speed=0.1,
-        car_rotation_speed=5,
-        car_final_scale=1.0,
-        car_final_rotation=0.0,
-    )
-    PREVIEW_SURFACE = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
+    # HISTORY: list[History] = []
+    # CAR_PREVIEW_DATA = CarPreviewData(
+    #     car_scale=1.0,
+    #     car_rotation=0.0,
+    #     car_scale_speed=0.1,
+    #     car_rotation_speed=5,
+    #     car_final_scale=1.0,
+    #     car_final_rotation=0.0,
+    # )
+    SELECTED_TRACK_PATH: str | None = None
+    IS_TRAINING_MODE: bool = True
+    TRACK_NAME: str = ""
 
     def __init__(
         self, neat_config_path: str, debug: bool, max_simulations: int
@@ -28,8 +30,8 @@ class GameState:
         self.title = "AI Car Simulation"
         self.MOUSE_UP = False
 
-        if not os.path.exists(CHECKPOINT_DIR):
-            os.makedirs(CHECKPOINT_DIR)
+        if not os.path.exists(CHECKPOINT_FOLDER):
+            os.makedirs(CHECKPOINT_FOLDER)
 
         pygame.init()
         pygame.display.set_caption(self.title)
@@ -43,5 +45,10 @@ class GameState:
     def set_previous_state(self) -> None:
         if len(self.PREVIOUS_STATES) > 0:
             prev = self.PREVIOUS_STATES.pop()
-            print(prev)
             self.CURRENT_STATE = prev
+
+    def get_previous_state(self) -> AvailableSteps:
+        if len(self.PREVIOUS_STATES) > 0:
+            return self.PREVIOUS_STATES[-1]
+        else:
+            return AvailableSteps.MAIN_MENU

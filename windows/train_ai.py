@@ -73,7 +73,7 @@ class TrainAIWindow:
                 elif button.text == "Select Track":
                     self.GAME_STATE.set_state(AvailableSteps.SELECT_TRACK)
                     self.EXIT_LOOP = True
-                elif button.text == "Select map":
+                elif button.text == "Select Map":
                     self.GAME_STATE.set_state(AvailableSteps.SELECT_MAP)
                     self.EXIT_LOOP = True
                 elif button.text == "Back":

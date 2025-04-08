@@ -2,21 +2,21 @@ import math
 import os
 import pygame
 
-from constants import WIDTH, HEIGHT, FPS, DEFAULT_FONT, BACKGROUND_FOLDER
 from data_models import AvailableSteps, Color
+from constants import WIDTH, HEIGHT, FPS, DEFAULT_FONT, BACKGROUND_FOLDER
 from utils import quit_event
 
 from render.game_state import GameState
 from render.button import Button
 
 
-class MainMenuWindow:
+class SimulateAIWindow:
     EXIT_LOOP = False
 
     def __init__(self, game_state: GameState) -> None:
         self.GAME_STATE = game_state
         BACKGROUND = pygame.image.load(
-            os.path.join(BACKGROUND_FOLDER, "main_menu.png")
+            os.path.join(BACKGROUND_FOLDER, "simulate_ai.png")
         ).convert_alpha()
         self.BACKGROUND = pygame.transform.scale(BACKGROUND, (WIDTH, HEIGHT))
         self.BUTTON_WIDTH = math.floor(WIDTH * 0.25)
@@ -27,7 +27,7 @@ class MainMenuWindow:
         self.Y_BUTTON_SPACE = math.floor(HEIGHT * 0.14)
         self.TITLE_FONT = pygame.font.SysFont(DEFAULT_FONT, math.floor(HEIGHT * 0.08))
 
-        BUTTON_TEXT = ["Train AI", "Simulate AI", "Exit"]
+        BUTTON_TEXT = ["Select Track", "Select Map"]
         self.buttons = [
             Button(
                 self.X_START + i * self.X_BUTTON_SPACE,
@@ -39,6 +39,20 @@ class MainMenuWindow:
             )
             for i, text in enumerate(BUTTON_TEXT)
         ]
+
+        BACK_BUTTON_WIDTH = math.floor(WIDTH * 0.1)
+        BACK_BUTTON_HEIGHT = math.floor(HEIGHT * 0.075)
+        BACK_BUTTON = Button(
+            WIDTH - BACK_BUTTON_WIDTH - 2,
+            2,
+            BACK_BUTTON_WIDTH,
+            BACK_BUTTON_HEIGHT,
+            "Back",
+            math.floor(BACK_BUTTON_HEIGHT * 0.4),
+            Color.WHITE,
+        )
+
+        self.buttons.append(BACK_BUTTON)
 
     def draw(self, screen: pygame.Surface) -> None:
         screen.blit(self.BACKGROUND, (0, 0))
@@ -53,13 +67,14 @@ class MainMenuWindow:
     def handle_event(self, event: pygame.event.Event) -> None:
         for button in self.buttons:
             if button.handle_event(event):
-                if button.text == "Train AI":
-                    self.GAME_STATE.set_state(AvailableSteps.TRAIN_AI)
+                if button.text == "Select Track":
+                    self.GAME_STATE.set_state(AvailableSteps.SELECT_TRACK)
                     self.EXIT_LOOP = True
-                elif button.text == "Simulate AI":
-                    self.GAME_STATE.set_state(AvailableSteps.SIMULATE_AI)
+                elif button.text == "Select Map":
+                    self.GAME_STATE.set_state(AvailableSteps.SELECT_MAP)
                     self.EXIT_LOOP = True
-                elif button.text == "Exit":
+                elif button.text == "Back":
+                    self.GAME_STATE.set_previous_state()
                     self.EXIT_LOOP = True
 
     def run(self) -> None:

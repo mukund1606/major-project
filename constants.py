@@ -1,5 +1,11 @@
-WIDTH = 1920
-HEIGHT = 1080
+import math
+
+WIDTH = 1280
+HEIGHT = 720
+
+TRACK_CANVAS_WIDTH = math.floor(WIDTH * 0.98)
+TRACK_CANVAS_HEIGHT = math.floor(HEIGHT * 0.84)
+
 FPS = 60
 
 DEFAULT_FONT = "comicsansms"

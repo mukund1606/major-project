@@ -37,16 +37,16 @@ class Color:
 
 
 class AvailableSteps(Enum):
-    MAIN_MENU = "main_menu"
+    MAIN_MENU = "main_menu"  # Done
 
-    TRAIN_AI = "train_ai"
-    DRAW_TRACK = "draw_track"
-    ENTER_TRACK_NAME = "enter_track_name"
+    TRAIN_AI = "train_ai"  # Done
+    ENTER_TRACK_NAME = "enter_track_name"  # Done
+    DRAW_TRACK = "draw_track"  # TODO
 
-    SELECT_TRACK = "select_track"
-    SELECT_MAP = "select_map"
+    SELECT_TRACK = "select_track"  # Done
+    SELECT_MAP = "select_map"  # TODO
 
-    SIMULATE_AI = "simulate_ai"
+    SIMULATE_AI = "simulate_ai"  # Done
 
     PLACE_CAR = "place_car"
     PLACE_CHECKPOINTS = "place_checkpoints"
