@@ -161,7 +161,6 @@ class SelectTrackWindow:
 
         for preview in self.TRACKS:
             if preview.handle_event(event):
-                self.GAME_STATE.SELECTED_TRACK_PATH = preview.track_path
                 self.GAME_STATE.TRACK_NAME = preview.track_name
                 self.GAME_STATE.set_state(AvailableSteps.PLACE_CAR)
                 self.EXIT_LOOP = True

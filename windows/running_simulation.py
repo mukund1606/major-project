@@ -32,40 +32,20 @@ class RunningSimulationWindow:
         self.HEADING_FONT = pygame.font.SysFont(DEFAULT_FONT, math.floor(HEIGHT * 0.05))
         self.FONT = pygame.font.SysFont(DEFAULT_FONT, math.floor(HEIGHT * 0.025))
 
-        self.LAST_POSITION: tuple[int, int] | None = None
         self.BORDER_THICKNESS = 2
 
-        self.TRACK_CANVAS = pygame.Surface(
-            (TRACK_CANVAS_WIDTH, TRACK_CANVAS_HEIGHT), pygame.SRCALPHA
+        # Setup track canvas position
+        CANVAS_CENTER_X = int(WIDTH // 2)
+        CANVAS_CENTER_Y = int(TRACK_CANVAS_HEIGHT // 2 + HEIGHT * 0.2)
+        self.TRACK_CANVAS_RECT = pygame.Rect(
+            0, 0, TRACK_CANVAS_WIDTH, TRACK_CANVAS_HEIGHT
         )
-        self.TRACK_CANVAS.fill(Color.WHITE)
-
-        CANVAS_CENTER_X = WIDTH // 2
-        CANVAS_CENTER_Y = TRACK_CANVAS_HEIGHT // 2 + HEIGHT * 0.2
-        self.TRACK_CANVAS_RECT = self.TRACK_CANVAS.get_rect(
-            center=(CANVAS_CENTER_X, CANVAS_CENTER_Y)
-        )
-        pygame.draw.rect(
-            self.TRACK_CANVAS,
-            Color.BLACK,
-            self.TRACK_CANVAS.get_rect(),
-            self.BORDER_THICKNESS,
-        )
+        self.TRACK_CANVAS_RECT.center = (CANVAS_CENTER_X, CANVAS_CENTER_Y)
 
     def load_track_canvas(self) -> None:
-        TRACK_IMAGE_PATH = os.path.join(
-            TRACKS_FOLDER, f"{self.GAME_STATE.TRACK_NAME}.png"
-        )
-        track_image = pygame.image.load(TRACK_IMAGE_PATH).convert_alpha()
-        self.TRACK_CANVAS = pygame.transform.scale(
-            track_image, (TRACK_CANVAS_WIDTH, TRACK_CANVAS_HEIGHT)
-        )
-        pygame.draw.rect(
-            self.TRACK_CANVAS,
-            Color.BLACK,
-            self.TRACK_CANVAS.get_rect(),
-            self.BORDER_THICKNESS,
-        )
+        """Ensure track is loaded in game state"""
+        if not self.GAME_STATE.TRACK:
+            self.GAME_STATE.load_track()
 
     def draw(self, screen: pygame.Surface) -> None:
         screen.blit(self.BACKGROUND, (0, 0))
@@ -90,7 +70,8 @@ class RunningSimulationWindow:
             screen.blit(instruction_surface, instruction_rect)
 
         # Draw Track Canvas
-        screen.blit(self.TRACK_CANVAS, self.TRACK_CANVAS_RECT)
+        if self.GAME_STATE.TRACK:
+            self.GAME_STATE.TRACK.draw(screen, self.TRACK_CANVAS_RECT)
 
     def handle_event(self, event: pygame.event.Event) -> None:
         # TODO: Implement this

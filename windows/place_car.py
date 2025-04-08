@@ -57,22 +57,13 @@ class PlaceCarWindow:
 
         self.buttons = [BACK_BUTTON]
 
-        self.TRACK_CANVAS = pygame.Surface(
-            (TRACK_CANVAS_WIDTH, TRACK_CANVAS_HEIGHT), pygame.SRCALPHA
+        # Setup track canvas position
+        CANVAS_CENTER_X = int(WIDTH // 2)
+        CANVAS_CENTER_Y = int(TRACK_CANVAS_HEIGHT // 2 + HEIGHT * 0.2)
+        self.TRACK_CANVAS_RECT = pygame.Rect(
+            0, 0, TRACK_CANVAS_WIDTH, TRACK_CANVAS_HEIGHT
         )
-        self.TRACK_CANVAS.fill(Color.WHITE)
-
-        CANVAS_CENTER_X = WIDTH // 2
-        CANVAS_CENTER_Y = TRACK_CANVAS_HEIGHT // 2 + HEIGHT * 0.2
-        self.TRACK_CANVAS_RECT = self.TRACK_CANVAS.get_rect(
-            center=(CANVAS_CENTER_X, CANVAS_CENTER_Y)
-        )
-        pygame.draw.rect(
-            self.TRACK_CANVAS,
-            Color.BLACK,
-            self.TRACK_CANVAS.get_rect(),
-            self.BORDER_THICKNESS,
-        )
+        self.TRACK_CANVAS_RECT.center = (CANVAS_CENTER_X, CANVAS_CENTER_Y)
 
     def update_car_size(self) -> None:
         car_size = self.GAME_STATE.CAR_PREVIEW_DATA.size
@@ -86,19 +77,9 @@ class PlaceCarWindow:
         self.car_preview_rect = self.car_preview.get_rect()
 
     def load_track_canvas(self) -> None:
-        TRACK_IMAGE_PATH = os.path.join(
-            TRACKS_FOLDER, f"{self.GAME_STATE.TRACK_NAME}.png"
-        )
-        track_image = pygame.image.load(TRACK_IMAGE_PATH).convert_alpha()
-        self.TRACK_CANVAS = pygame.transform.scale(
-            track_image, (TRACK_CANVAS_WIDTH, TRACK_CANVAS_HEIGHT)
-        )
-        pygame.draw.rect(
-            self.TRACK_CANVAS,
-            Color.BLACK,
-            self.TRACK_CANVAS.get_rect(),
-            self.BORDER_THICKNESS,
-        )
+        """Ensure track is loaded in game state"""
+        if not self.GAME_STATE.TRACK:
+            self.GAME_STATE.load_track()
 
     def place_car(self, mouse_pos: tuple[int, int]) -> None:
         self.GAME_STATE.CAR_PREVIEW_DATA.position = mouse_pos
@@ -129,7 +110,8 @@ class PlaceCarWindow:
             screen.blit(instruction_surface, instruction_rect)
 
         # Draw Track Canvas
-        screen.blit(self.TRACK_CANVAS, self.TRACK_CANVAS_RECT)
+        if self.GAME_STATE.TRACK:
+            self.GAME_STATE.TRACK.draw(screen, self.TRACK_CANVAS_RECT)
 
         for button in self.buttons:
             button.draw(screen)

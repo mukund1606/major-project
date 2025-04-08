@@ -9,28 +9,25 @@ from data_models import (
     CheckpointPreviewData,
     FinalMarkerPreviewData,
 )
+from render.track import Track
 
 
 class GameState:
     PREVIOUS_STATES: list[AvailableSteps] = []
     CURRENT_STATE: AvailableSteps = AvailableSteps.MAIN_MENU
     HISTORY: list[History] = []
-    CAR_PREVIEW_DATA = CarPreviewData(
-        size=40,
-        rotation=0,
-        position=(0, 0),
-    )
+    CAR_PREVIEW_DATA = CarPreviewData(size=40, rotation=0, position=(0, 0))
     CHECKPOINTS_PREVIEW_DATA: list[CheckpointPreviewData] = []
     FINAL_MARKER_PREVIEW_DATA = FinalMarkerPreviewData(
         size=40,
         position=(0, 0),
     )
-    SELECTED_TRACK_PATH: str | None = None
     IS_TRAINING_MODE: bool = True
     TRACK_NAME: str = ""
     CURRENT_GENERATION: int = 0
     BEST_FITNESS: float = 0.0
     ALIVE_CARS: int = 0
+    TRACK: Track | None = None
 
     def __init__(
         self, neat_config_path: str, debug: bool, max_simulations: int
@@ -60,6 +57,13 @@ class GameState:
             self.CURRENT_STATE = prev
         else:
             self.CURRENT_STATE = AvailableSteps.MAIN_MENU
+
+    def load_track(self, track_name: str | None = None) -> None:
+        """Load or reload the track."""
+        if track_name is not None:
+            self.TRACK_NAME = track_name
+        if self.TRACK_NAME:
+            self.TRACK = Track(self.TRACK_NAME)
 
     def get_previous_state(self) -> AvailableSteps:
         if len(self.PREVIOUS_STATES) > 0:
