@@ -1,5 +1,6 @@
 from enum import Enum
 from pydantic import BaseModel
+from pygame.color import Color as PygameColor
 
 
 class CarPathHistory(BaseModel):
@@ -16,7 +17,7 @@ class History(BaseModel):
     car_path_history: list[CarPathHistory]
 
 
-class Color:
+class Color(PygameColor):
     WHITE = (255, 255, 255)
     BLACK = (0, 0, 0)
     GREEN = (0, 255, 0)

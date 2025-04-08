@@ -42,10 +42,13 @@ class GameState:
         self.PREVIOUS_STATES.append(self.CURRENT_STATE)
         self.CURRENT_STATE = state
 
-    def set_previous_state(self) -> None:
-        if len(self.PREVIOUS_STATES) > 0:
-            prev = self.PREVIOUS_STATES.pop()
+    def set_previous_state(self, steps: int = 1) -> None:
+        if len(self.PREVIOUS_STATES) > steps - 1:
+            for _ in range(steps):
+                prev = self.PREVIOUS_STATES.pop()
             self.CURRENT_STATE = prev
+        else:
+            self.CURRENT_STATE = AvailableSteps.MAIN_MENU
 
     def get_previous_state(self) -> AvailableSteps:
         if len(self.PREVIOUS_STATES) > 0:
