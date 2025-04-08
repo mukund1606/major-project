@@ -202,8 +202,8 @@ class DrawTrackWindow:
         # Draw brush preview at current mouse position if within canvas
         mouse_pos = pygame.mouse.get_pos()
         if self.TRACK_CANVAS_RECT.collidepoint(mouse_pos):
-            preview_rect = self.brush_preview_surface.get_rect(center=mouse_pos)
-            screen.blit(self.brush_preview_surface, preview_rect)
+            preview_rect = self.BRUSH_PREVIEW_SURFACE.get_rect(center=mouse_pos)
+            screen.blit(self.BRUSH_PREVIEW_SURFACE, preview_rect)
 
     def handle_event(self, event: pygame.event.Event) -> None:
         MOUSE_PRESSED = pygame.mouse.get_pressed()
