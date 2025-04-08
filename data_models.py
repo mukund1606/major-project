@@ -42,28 +42,35 @@ class AvailableSteps(Enum):
 
     TRAIN_AI = "train_ai"  # Done
     ENTER_TRACK_NAME = "enter_track_name"  # Done
-    DRAW_TRACK = "draw_track"  # TODO
+    DRAW_TRACK = "draw_track"  # Done
 
     SELECT_TRACK = "select_track"  # Done
     SELECT_MAP = "select_map"  # TODO
 
     SIMULATE_AI = "simulate_ai"  # Done
 
-    PLACE_CAR = "place_car"
-    PLACE_CHECKPOINTS = "place_checkpoints"
-    PLACE_DESTINATION_POINT = "place_destination_point"
+    PLACE_CAR = "place_car"  # Done
+    PLACE_CHECKPOINTS = "place_checkpoints"  # TODO (Maybe)
+    PLACE_DESTINATION_MARKER = "place_destination_point"  # Done
 
-    SELECT_GENERATION = "select_generation"
+    SELECT_GENERATION = "select_generation"  # TODO
 
-    START_SIMULATION = "start_simulation"
+    START_SIMULATION = "start_simulation"  # TODO
 
-    EXIT = "exit"
+    EXIT = "exit"  # Done
 
 
 class CarPreviewData(BaseModel):
-    car_scale: float
-    car_rotation: float
-    car_scale_speed: float
-    car_rotation_speed: float
-    car_final_scale: float
-    car_final_rotation: float
+    size: float
+    rotation: float
+    position: tuple[int, int]
+
+
+class CheckpointPreviewData(BaseModel):
+    size: float
+    position: tuple[int, int]
+
+
+class FinalMarkerPreviewData(BaseModel):
+    size: float
+    position: tuple[int, int]

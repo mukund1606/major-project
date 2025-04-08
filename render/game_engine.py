@@ -11,6 +11,9 @@ from windows.simulate_ai import SimulateAIWindow
 from windows.track_name import TrackNameWindow
 from windows.select_track import SelectTrackWindow
 from windows.draw_track import DrawTrackWindow
+from windows.place_car import PlaceCarWindow
+from windows.place_destination_marker import PlaceDestinationMarkerWindow
+from windows.running_simulation import RunningSimulationWindow
 
 
 class GameEngine:
@@ -25,6 +28,11 @@ class GameEngine:
         self.DRAW_TRACK_WINDOW = DrawTrackWindow(self.game_state)
         self.SELECT_TRACK_WINDOW = SelectTrackWindow(self.game_state)
         self.SIMULATE_AI_WINDOW = SimulateAIWindow(self.game_state)
+        self.PLACE_CAR_WINDOW = PlaceCarWindow(self.game_state)
+        self.PLACE_DESTINATION_MARKER_WINDOW = PlaceDestinationMarkerWindow(
+            self.game_state
+        )
+        self.RUNNING_SIMULATION_WINDOW = RunningSimulationWindow(self.game_state)
 
     def run(self) -> None:
         while True:
@@ -38,6 +46,10 @@ class GameEngine:
                 pygame.display.set_caption("AI Car Simulation - Train AI")
                 self.game_state.IS_TRAINING_MODE = True
                 self.TRAIN_AI_WINDOW.run()
+            elif self.game_state.CURRENT_STATE == AvailableSteps.SIMULATE_AI:
+                pygame.display.set_caption("AI Car Simulation - Simulate AI")
+                self.game_state.IS_TRAINING_MODE = False
+                self.SIMULATE_AI_WINDOW.run()
             elif self.game_state.CURRENT_STATE == AvailableSteps.ENTER_TRACK_NAME:
                 pygame.display.set_caption("AI Car Simulation - Enter Track Name")
                 self.TRACK_NAME_WINDOW.run()
@@ -47,7 +59,20 @@ class GameEngine:
             elif self.game_state.CURRENT_STATE == AvailableSteps.SELECT_TRACK:
                 pygame.display.set_caption("AI Car Simulation - Select Track")
                 self.SELECT_TRACK_WINDOW.run()
-            elif self.game_state.CURRENT_STATE == AvailableSteps.SIMULATE_AI:
-                pygame.display.set_caption("AI Car Simulation - Simulate AI")
-                self.game_state.IS_TRAINING_MODE = False
-                self.SIMULATE_AI_WINDOW.run()
+            elif self.game_state.CURRENT_STATE == AvailableSteps.SELECT_MAP:
+                pygame.display.set_caption("AI Car Simulation - Select Map")
+                print("TODO: Select Map")
+                break
+            elif self.game_state.CURRENT_STATE == AvailableSteps.PLACE_CAR:
+                pygame.display.set_caption("AI Car Simulation - Place Car")
+                self.PLACE_CAR_WINDOW.run()
+            elif (
+                self.game_state.CURRENT_STATE == AvailableSteps.PLACE_DESTINATION_MARKER
+            ):
+                pygame.display.set_caption(
+                    "AI Car Simulation - Place Destination Marker"
+                )
+                self.PLACE_DESTINATION_MARKER_WINDOW.run()
+            elif self.game_state.CURRENT_STATE == AvailableSteps.START_SIMULATION:
+                pygame.display.set_caption("AI Car Simulation - Running Simulation")
+                self.RUNNING_SIMULATION_WINDOW.run()

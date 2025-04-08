@@ -2,24 +2,35 @@ import os
 import pygame
 
 from constants import WIDTH, HEIGHT, CHECKPOINT_FOLDER
-from data_models import AvailableSteps, History, CarPreviewData
+from data_models import (
+    AvailableSteps,
+    History,
+    CarPreviewData,
+    CheckpointPreviewData,
+    FinalMarkerPreviewData,
+)
 
 
 class GameState:
     PREVIOUS_STATES: list[AvailableSteps] = []
     CURRENT_STATE: AvailableSteps = AvailableSteps.MAIN_MENU
-    # HISTORY: list[History] = []
-    # CAR_PREVIEW_DATA = CarPreviewData(
-    #     car_scale=1.0,
-    #     car_rotation=0.0,
-    #     car_scale_speed=0.1,
-    #     car_rotation_speed=5,
-    #     car_final_scale=1.0,
-    #     car_final_rotation=0.0,
-    # )
+    HISTORY: list[History] = []
+    CAR_PREVIEW_DATA = CarPreviewData(
+        size=40,
+        rotation=0,
+        position=(0, 0),
+    )
+    CHECKPOINTS_PREVIEW_DATA: list[CheckpointPreviewData] = []
+    FINAL_MARKER_PREVIEW_DATA = FinalMarkerPreviewData(
+        size=40,
+        position=(0, 0),
+    )
     SELECTED_TRACK_PATH: str | None = None
     IS_TRAINING_MODE: bool = True
     TRACK_NAME: str = ""
+    CURRENT_GENERATION: int = 0
+    BEST_FITNESS: float = 0.0
+    ALIVE_CARS: int = 0
 
     def __init__(
         self, neat_config_path: str, debug: bool, max_simulations: int
