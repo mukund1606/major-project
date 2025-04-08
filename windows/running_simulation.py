@@ -7,7 +7,6 @@ from constants import (
     HEIGHT,
     FPS,
     DEFAULT_FONT,
-    TRACKS_FOLDER,
     TRACK_CANVAS_WIDTH,
     TRACK_CANVAS_HEIGHT,
 )
