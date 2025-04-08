@@ -1,13 +1,13 @@
-import sys
-import pygame
 import math
+import os
+import pygame
+
+from data_models import AvailableSteps, Color
+from constants import WIDTH, HEIGHT, FPS, DEFAULT_FONT, BACKGROUND_FOLDER
+from utils import quit_event
 
 from render.game_state import GameState
 from render.button import Button
-
-from constants import WIDTH, HEIGHT, FPS, DEFAULT_FONT
-from utils import quit_event
-from data_models import AvailableSteps, Color
 
 
 class TrainAIWindow:
@@ -16,11 +16,11 @@ class TrainAIWindow:
     def __init__(self, game_state: GameState) -> None:
         self.GAME_STATE = game_state
         BACKGROUND = pygame.image.load(
-            "assets/backgrounds/train_ai.png"
+            os.path.join(BACKGROUND_FOLDER, "train_ai.png")
         ).convert_alpha()
         self.BACKGROUND = pygame.transform.scale(BACKGROUND, (WIDTH, HEIGHT))
-        self.BUTTON_WIDTH = WIDTH * 0.25
-        self.BUTTON_HEIGHT = HEIGHT * 0.1
+        self.BUTTON_WIDTH = math.floor(WIDTH * 0.25)
+        self.BUTTON_HEIGHT = math.floor(HEIGHT * 0.1)
         self.X_START = math.floor(WIDTH * 0.65)
         self.Y_START = math.floor(HEIGHT * 0.28)
         self.X_BUTTON_SPACE = math.floor(-1 * WIDTH * 0.052)
@@ -41,13 +41,14 @@ class TrainAIWindow:
         ]
 
         BACK_BUTTON_WIDTH = math.floor(WIDTH * 0.1)
+        BACK_BUTTON_HEIGHT = math.floor(HEIGHT * 0.075)
         BACK_BUTTON = Button(
             WIDTH - BACK_BUTTON_WIDTH - 2,
             2,
             BACK_BUTTON_WIDTH,
-            self.BUTTON_HEIGHT,
+            BACK_BUTTON_HEIGHT,
             "Back",
-            math.floor(self.BUTTON_HEIGHT * 0.4),
+            math.floor(BACK_BUTTON_HEIGHT * 0.4),
             Color.WHITE,
         )
 

@@ -1,13 +1,13 @@
-import sys
-import pygame
 import math
+import os
+import pygame
+
+from constants import WIDTH, HEIGHT, FPS, DEFAULT_FONT, BACKGROUND_FOLDER
+from data_models import AvailableSteps, Color
+from utils import quit_event
 
 from render.game_state import GameState
 from render.button import Button
-
-from constants import WIDTH, HEIGHT, FPS, DEFAULT_FONT
-from utils import quit_event
-from data_models import AvailableSteps, Color
 
 
 class MainMenuWindow:
@@ -16,11 +16,11 @@ class MainMenuWindow:
     def __init__(self, game_state: GameState) -> None:
         self.GAME_STATE = game_state
         BACKGROUND = pygame.image.load(
-            "assets/backgrounds/main_menu.png"
+            os.path.join(BACKGROUND_FOLDER, "main_menu.png")
         ).convert_alpha()
         self.BACKGROUND = pygame.transform.scale(BACKGROUND, (WIDTH, HEIGHT))
-        self.BUTTON_WIDTH = WIDTH * 0.25
-        self.BUTTON_HEIGHT = HEIGHT * 0.1
+        self.BUTTON_WIDTH = math.floor(WIDTH * 0.25)
+        self.BUTTON_HEIGHT = math.floor(HEIGHT * 0.1)
         self.X_START = math.floor(WIDTH * 0.65)
         self.Y_START = math.floor(HEIGHT * 0.28)
         self.X_BUTTON_SPACE = math.floor(-1 * WIDTH * 0.052)

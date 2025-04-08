@@ -1,11 +1,13 @@
-import os
-import sys
 import pygame
+import sys
 
 from data_models import AvailableSteps
+
 from render.game_state import GameState
+
 from windows.main_menu import MainMenuWindow
 from windows.train_ai import TrainAIWindow
+from windows.track_name import TrackNameWindow
 
 
 class GameEngine:
@@ -16,6 +18,7 @@ class GameEngine:
         self.game_state = GameState(neat_config_path, debug, max_simulations)
         self.MAIN_WINDOW = MainMenuWindow(self.game_state)
         self.TRAIN_AI_WINDOW = TrainAIWindow(self.game_state)
+        self.TRACK_NAME_WINDOW = TrackNameWindow(self.game_state, self.TRAIN_AI_WINDOW)
 
     def run(self) -> None:
         while True:
@@ -27,3 +30,5 @@ class GameEngine:
                 self.MAIN_WINDOW.run()
             elif self.game_state.CURRENT_STATE == AvailableSteps.TRAIN_AI:
                 self.TRAIN_AI_WINDOW.run()
+            elif self.game_state.CURRENT_STATE == AvailableSteps.ENTER_TRACK_NAME:
+                self.TRACK_NAME_WINDOW.run()

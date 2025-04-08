@@ -1,4 +1,5 @@
 import pygame
+
 from constants import DEFAULT_FONT
 from data_models import Color
 
@@ -19,11 +20,27 @@ class Button:
         self.color = color
         self.font = pygame.font.SysFont(DEFAULT_FONT, font_size)
         self.is_hovered = False
+        self.surface = pygame.Surface((width, height), pygame.SRCALPHA)
 
     def draw(self, screen: pygame.Surface) -> None:
+        self.surface.fill((0, 0, 0, 0))
+
         if self.color is not None:
-            pygame.draw.rect(screen, self.color, self.rect, border_radius=5)
-            pygame.draw.rect(screen, (100, 100, 100), self.rect, 2, border_radius=5)
+            pygame.draw.rect(
+                self.surface,
+                (*self.color, 255 if not self.is_hovered else 191),
+                self.surface.get_rect(),
+                border_radius=5,
+            )
+            pygame.draw.rect(
+                self.surface,
+                (100, 100, 100, 255),
+                self.surface.get_rect(),
+                2,
+                border_radius=5,
+            )
+
+            screen.blit(self.surface, self.rect)
 
         text_surface = self.font.render(self.text, True, Color.BLACK)
         text_rect = text_surface.get_rect(center=self.rect.center)
