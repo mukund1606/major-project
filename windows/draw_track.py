@@ -226,7 +226,9 @@ class DrawTrackWindow:
                 # Save Track Canvas
                 data = pygame.image.tostring(self.TRACK_CANVAS, "RGB")
                 img = Image.frombytes("RGB", self.TRACK_CANVAS.get_size(), data)
-                path = os.path.join(TRACKS_FOLDER, f"{self.GAME_STATE.TRACK_NAME}.png")
+                path = os.path.join(
+                    TRACKS_FOLDER, f"{self.GAME_STATE.TRACK.track_name}.png"
+                )
                 img.save(path)
                 self.GAME_STATE.set_state(AvailableSteps.SELECT_TRACK)
                 self.EXIT_LOOP = True

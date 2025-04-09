@@ -18,6 +18,7 @@ class Track:
     IS_MAP = False
     BORDER_THICKNESS = 2
     TRACK_LENGTH = 0
+    FINAL_LINE_POSITION: tuple[float, float, float] = (0, 0, 0)
 
     def __init__(self, track_name: str, is_map: bool = False) -> None:
         self.IS_MAP = is_map
@@ -38,6 +39,10 @@ class Track:
         # Load track if name is provided
         if track_name and track_name != "":
             self.load_track()
+        else:
+            # Load Empty Track
+            self.AI_SURFACE.fill(Color.WHITE)
+            self.FOREGROUND.fill(Color.WHITE)
 
         # Draw border
         self.draw_border()
@@ -55,7 +60,6 @@ class Track:
                 track_image, (TRACK_CANVAS_WIDTH, TRACK_CANVAS_HEIGHT)
             )
             self.TRACK_LENGTH = calculate_track_length(img)
-            print(f"Track length: {self.TRACK_LENGTH}")
             self.draw_border()
         else:
             self.set_foreground()

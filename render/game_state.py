@@ -1,6 +1,6 @@
 import os
 import pygame
-
+import neat
 from constants import WIDTH, HEIGHT, CHECKPOINT_FOLDER
 from data_models import (
     AvailableSteps,
@@ -9,6 +9,7 @@ from data_models import (
     CheckpointPreviewData,
     FinalMarkerPreviewData,
 )
+from neural_network.nn import NN
 from render.track import Track
 
 
@@ -23,11 +24,12 @@ class GameState:
         position=(0, 0),
     )
     IS_TRAINING_MODE: bool = True
-    TRACK_NAME: str = ""
     CURRENT_GENERATION: int = 0
     BEST_FITNESS: float = 0.0
     ALIVE_CARS: int = 0
-    TRACK: Track | None = None
+    INPUT_TEXT: str = ""
+    BEST_VISUAL_NN: NN | None = None
+    CHECKPOINT_POPULATION: neat.Population | None = None
 
     def __init__(
         self, neat_config_path: str, debug: bool, max_simulations: int
@@ -37,6 +39,8 @@ class GameState:
         self.max_simulations = max_simulations
         self.title = "AI Car Simulation"
         self.MOUSE_UP = False
+        self.TRACK = Track("", False)
+        self.TRACK_CANVAS_RECT = pygame.Rect(0, 0, 0, 0)
 
         if not os.path.exists(CHECKPOINT_FOLDER):
             os.makedirs(CHECKPOINT_FOLDER)
@@ -58,12 +62,15 @@ class GameState:
         else:
             self.CURRENT_STATE = AvailableSteps.MAIN_MENU
 
-    def load_track(self, track_name: str | None = None) -> None:
+    def load_track(self, track_name: str) -> None:
         """Load or reload the track."""
-        if track_name is not None:
-            self.TRACK_NAME = track_name
-        if self.TRACK_NAME:
-            self.TRACK = Track(self.TRACK_NAME)
+        self.TRACK.track_name = track_name
+        self.TRACK.load_track()
+
+    def load_checkpoint(self, checkpoint_path: str) -> None:
+        """Load or reload the checkpoint."""
+        checkpoint = neat.Checkpointer.restore_checkpoint(checkpoint_path)
+        self.CHECKPOINT_POPULATION = checkpoint
 
     def get_previous_state(self) -> AvailableSteps:
         if len(self.PREVIOUS_STATES) > 0:

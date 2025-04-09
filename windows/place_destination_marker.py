@@ -7,7 +7,6 @@ from constants import (
     HEIGHT,
     FPS,
     DEFAULT_FONT,
-    TRACKS_FOLDER,
     TRACK_CANVAS_WIDTH,
     TRACK_CANVAS_HEIGHT,
     MARKERS_FOLDER,
@@ -60,18 +59,17 @@ class PlaceDestinationMarkerWindow:
             BACK_BUTTON_HEIGHT,
             "Back",
             math.floor(BACK_BUTTON_HEIGHT * 0.4),
-            Color.BLACK,
+            Color.WHITE,
         )
 
         self.buttons = [BACK_BUTTON]
 
-        # Setup track canvas position
+        # Setup track canvas position and store in GameState
         CANVAS_CENTER_X = int(WIDTH // 2)
         CANVAS_CENTER_Y = int(TRACK_CANVAS_HEIGHT // 2 + HEIGHT * 0.2)
-        self.TRACK_CANVAS_RECT = pygame.Rect(
-            0, 0, TRACK_CANVAS_WIDTH, TRACK_CANVAS_HEIGHT
-        )
-        self.TRACK_CANVAS_RECT.center = (CANVAS_CENTER_X, CANVAS_CENTER_Y)
+        track_canvas_rect = pygame.Rect(0, 0, TRACK_CANVAS_WIDTH, TRACK_CANVAS_HEIGHT)
+        track_canvas_rect.center = (CANVAS_CENTER_X, CANVAS_CENTER_Y)
+        self.GAME_STATE.TRACK_CANVAS_RECT = track_canvas_rect
 
     def update_car_size(self) -> None:
         car_size = self.GAME_STATE.CAR_PREVIEW_DATA.size
@@ -118,16 +116,14 @@ class PlaceDestinationMarkerWindow:
             )
             screen.blit(instruction_surface, instruction_rect)
 
-        # Draw Track Canvas
-        if self.GAME_STATE.TRACK:
-            self.GAME_STATE.TRACK.draw(screen, self.TRACK_CANVAS_RECT)
+        self.GAME_STATE.TRACK.draw(screen, self.GAME_STATE.TRACK_CANVAS_RECT)
 
         for button in self.buttons:
             button.draw(screen)
 
         # Draw marker preview at current mouse position if within canvas
         mouse_pos = pygame.mouse.get_pos()
-        if self.TRACK_CANVAS_RECT.collidepoint(mouse_pos):
+        if self.GAME_STATE.TRACK_CANVAS_RECT.collidepoint(mouse_pos):
             self.marker_preview_rect.center = mouse_pos
             screen.blit(self.marker_preview, self.marker_preview_rect)
 
@@ -146,7 +142,7 @@ class PlaceDestinationMarkerWindow:
         mouse_pos = pygame.mouse.get_pos()
 
         if MOUSE_PRESSED[0]:
-            if self.TRACK_CANVAS_RECT.collidepoint(mouse_pos):
+            if self.GAME_STATE.TRACK_CANVAS_RECT.collidepoint(mouse_pos):
                 self.place_marker(mouse_pos)
 
         if event.type == pygame.KEYDOWN:
@@ -182,7 +178,6 @@ class PlaceDestinationMarkerWindow:
 
     def run(self) -> None:
         self.EXIT_LOOP = False
-        self.GAME_STATE.load_track()
         self.update_car_size()
 
         self.GAME_STATE.FINAL_MARKER_PREVIEW_DATA.size = 60

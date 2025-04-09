@@ -3,19 +3,54 @@ import os
 import pygame
 
 from data_models import AvailableSteps, Color
-from constants import WIDTH, HEIGHT, FPS, DEFAULT_FONT, TRACKS_FOLDER
+from constants import WIDTH, HEIGHT, FPS, DEFAULT_FONT, CHECKPOINT_FOLDER
 from utils import quit_event
 
 from render.game_state import GameState
 from render.button import Button
-from render.track_preview import TrackPreview
 
 
-class SelectTrackWindow:
+class CheckpointPreview:
+    def __init__(
+        self, x: int, y: int, width: int, height: int, name: str, path: str
+    ) -> None:
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.rect = pygame.Rect(x, y, width, height)
+        self.name = name
+        self.path = path
+        self.y_offset = 0
+
+        self.FONT = pygame.font.SysFont(DEFAULT_FONT, math.floor(HEIGHT * 0.025))
+
+    def draw(self, screen: pygame.Surface) -> None:
+        pygame.draw.rect(screen, Color.WHITE, (self.x, self.y, self.width, self.height))
+        # Draw the border
+        pygame.draw.rect(
+            screen, Color.BLACK, (self.x, self.y, self.width, self.height), 2
+        )
+        text = self.FONT.render(self.name, True, Color.BLACK)
+        text_rect = text.get_rect(
+            center=(self.x + self.width / 2, self.y + self.height / 2)
+        )
+        screen.blit(text, text_rect)
+
+    def handle_event(self, event: pygame.event.Event) -> bool:
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            # Update collision detection to use scrolled position
+            mouse_pos = event.pos
+            if self.rect.collidepoint(mouse_pos):
+                return True
+        return False
+
+
+class SelectGenerationWindow:
     EXIT_LOOP = False
-    TRACKS: list[TrackPreview] = []
+    CHECKPOINTS: list[CheckpointPreview] = []
     PREVIEW_WIDTH = math.floor(WIDTH * 0.15)
-    PREVIEW_HEIGHT = math.floor(HEIGHT * 0.2)
+    PREVIEW_HEIGHT = math.floor(HEIGHT * 0.1)
     GRID_SPACE = math.floor(WIDTH * 0.025)
     GRID_COLUMNS = 4
     # Calculate total width of all previews and spaces
@@ -25,9 +60,7 @@ class SelectTrackWindow:
     # Center the entire grid horizontally
     START_X = (WIDTH - TOTAL_GRID_WIDTH) // 2
     START_Y = math.floor(HEIGHT * 0.2)
-    # Account for track name text height in grid spacing
-    TEXT_HEIGHT = math.floor(HEIGHT * 0.04)  # Space for track name below preview
-    PREVIEW_SPACING_Y = PREVIEW_HEIGHT + TEXT_HEIGHT + GRID_SPACE
+    PREVIEW_SPACING_Y = PREVIEW_HEIGHT + GRID_SPACE
     # Scrolling parameters
     SCROLL_SPEED = 50
     scroll_y = 0
@@ -73,12 +106,12 @@ class SelectTrackWindow:
 
         self.buttons = [BACK_BUTTON, REFRESH_BUTTON]
 
-        self.get_tracks()
+        self.get_checkpoints()
 
     def draw(self, screen: pygame.Surface) -> None:
         screen.blit(self.BACKGROUND, (0, 0))
 
-        title = self.HEADING_FONT.render("Select Track", True, Color.BLACK)
+        title = self.HEADING_FONT.render("Select Generation", True, Color.BLACK)
         TITLE_X = WIDTH // 2
         TITLE_Y = math.floor(HEIGHT * 0.05)
         title_rect = title.get_rect(center=(TITLE_X, TITLE_Y))
@@ -90,7 +123,7 @@ class SelectTrackWindow:
         )
         screen.set_clip(scroll_area)
 
-        for preview in self.TRACKS:
+        for preview in self.CHECKPOINTS:
             # Adjust preview position by scroll amount
             preview.y_offset = self.scroll_y
             # Only draw if in visible area
@@ -108,39 +141,40 @@ class SelectTrackWindow:
         for button in self.buttons:
             button.draw(screen)
 
-    def get_tracks(self) -> None:
-        tracks = os.listdir(TRACKS_FOLDER)
-        tracks = [
-            track for track in tracks if track.endswith((".png", ".jpg", ".jpeg"))
-        ]
+    def get_checkpoints(self) -> None:
+        path = os.path.join(CHECKPOINT_FOLDER, self.GAME_STATE.TRACK.track_name)
+        if not os.path.exists(path):
+            os.makedirs(path)
+            return
+
+        checkpoints = os.listdir(path)
+
         previews = []
-        for i, track in enumerate(tracks):
+        for i, checkpoint in enumerate(checkpoints):
             row = i // self.GRID_COLUMNS
             col = i % self.GRID_COLUMNS
             x_pos = self.START_X + col * (self.PREVIEW_WIDTH + self.GRID_SPACE)
             # Use PREVIEW_SPACING_Y instead of PREVIEW_HEIGHT for vertical spacing
             y_pos = self.START_Y + row * self.PREVIEW_SPACING_Y
 
-            track_path = os.path.join(TRACKS_FOLDER, track)
-            track_name = os.path.splitext(track)[0]
+            checkpoint_path = os.path.join(path, checkpoint)
+            checkpoint_name = os.path.splitext(checkpoint)[0]
 
-            preview = TrackPreview(
+            preview = CheckpointPreview(
                 x_pos,
                 y_pos,
                 self.PREVIEW_WIDTH,
                 self.PREVIEW_HEIGHT,
-                track_name,
-                track_path,
+                checkpoint_name,
+                checkpoint_path,
             )
             previews.append(preview)
-        self.TRACKS = previews
+        self.CHECKPOINTS = previews
 
         # Calculate max scroll based on content height including text space
         if previews:
             last_preview = previews[-1]
-            content_height = (
-                last_preview.y + self.PREVIEW_HEIGHT + self.TEXT_HEIGHT - self.START_Y
-            )
+            content_height = last_preview.y + self.PREVIEW_HEIGHT - self.START_Y
             self.max_scroll = min(0, self.VISIBLE_AREA_HEIGHT - content_height)
 
     def handle_event(self, event: pygame.event.Event) -> None:
@@ -150,7 +184,7 @@ class SelectTrackWindow:
                     self.GAME_STATE.set_previous_state()
                     self.EXIT_LOOP = True
                 elif button.text == "Refresh":
-                    self.get_tracks()
+                    self.get_checkpoints()
                     self.scroll_y = 0  # Reset scroll position on refresh
 
         # Handle mouse wheel scrolling
@@ -159,18 +193,15 @@ class SelectTrackWindow:
             # Clamp scroll value
             self.scroll_y = max(min(0, self.scroll_y), self.max_scroll)
 
-        for preview in self.TRACKS:
+        for preview in self.CHECKPOINTS:
             if preview.handle_event(event):
-                self.GAME_STATE.load_track(preview.track_name)
-                if self.GAME_STATE.IS_TRAINING_MODE:
-                    self.GAME_STATE.set_state(AvailableSteps.PLACE_CAR)
-                else:
-                    self.GAME_STATE.set_state(AvailableSteps.SELECT_GENERATION)
+                self.GAME_STATE.load_checkpoint(preview.path)
+                self.GAME_STATE.set_state(AvailableSteps.PLACE_CAR)
                 self.EXIT_LOOP = True
 
     def run(self) -> None:
         self.EXIT_LOOP = False
-        self.get_tracks()
+        self.get_checkpoints()
         while not self.EXIT_LOOP:
             for event in pygame.event.get():
                 # Handle events

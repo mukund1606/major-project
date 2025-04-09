@@ -7,7 +7,6 @@ from constants import (
     HEIGHT,
     FPS,
     DEFAULT_FONT,
-    TRACKS_FOLDER,
     TRACK_CANVAS_WIDTH,
     TRACK_CANVAS_HEIGHT,
     CARS_FOLDER,
@@ -41,6 +40,7 @@ class PlaceCarWindow:
         self.CAR_IMG = pygame.image.load(
             os.path.join(CARS_FOLDER, "car.png")
         ).convert_alpha()
+
         self.update_car_size()
 
         BACK_BUTTON_WIDTH = math.floor(WIDTH * 0.1)
@@ -57,13 +57,12 @@ class PlaceCarWindow:
 
         self.buttons = [BACK_BUTTON]
 
-        # Setup track canvas position
+        # Setup track canvas position and store in GameState
         CANVAS_CENTER_X = int(WIDTH // 2)
         CANVAS_CENTER_Y = int(TRACK_CANVAS_HEIGHT // 2 + HEIGHT * 0.2)
-        self.TRACK_CANVAS_RECT = pygame.Rect(
-            0, 0, TRACK_CANVAS_WIDTH, TRACK_CANVAS_HEIGHT
-        )
-        self.TRACK_CANVAS_RECT.center = (CANVAS_CENTER_X, CANVAS_CENTER_Y)
+        track_canvas_rect = pygame.Rect(0, 0, TRACK_CANVAS_WIDTH, TRACK_CANVAS_HEIGHT)
+        track_canvas_rect.center = (CANVAS_CENTER_X, CANVAS_CENTER_Y)
+        self.GAME_STATE.TRACK_CANVAS_RECT = track_canvas_rect
 
     def update_car_size(self) -> None:
         car_size = self.GAME_STATE.CAR_PREVIEW_DATA.size
@@ -104,16 +103,14 @@ class PlaceCarWindow:
             )
             screen.blit(instruction_surface, instruction_rect)
 
-        # Draw Track Canvas
-        if self.GAME_STATE.TRACK:
-            self.GAME_STATE.TRACK.draw(screen, self.TRACK_CANVAS_RECT)
+        self.GAME_STATE.TRACK.draw(screen, self.GAME_STATE.TRACK_CANVAS_RECT)
 
         for button in self.buttons:
             button.draw(screen)
 
         # Draw car preview at current mouse position if within canvas
         mouse_pos = pygame.mouse.get_pos()
-        if self.TRACK_CANVAS_RECT.collidepoint(mouse_pos):
+        if self.GAME_STATE.TRACK_CANVAS_RECT.collidepoint(mouse_pos):
             self.car_preview_rect.center = mouse_pos
             screen.blit(self.car_preview, self.car_preview_rect)
 
@@ -126,8 +123,9 @@ class PlaceCarWindow:
         mouse_pos = pygame.mouse.get_pos()
 
         if MOUSE_PRESSED[0]:
-            if self.TRACK_CANVAS_RECT.collidepoint(mouse_pos):
-                self.place_car(mouse_pos)
+            # Ensure track canvas rect exists before checking collision
+            if self.GAME_STATE.TRACK_CANVAS_RECT.collidepoint(mouse_pos):
+                self.place_car(mouse_pos)  # Store absolute screen position
 
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_RETURN:
@@ -163,7 +161,6 @@ class PlaceCarWindow:
 
     def run(self) -> None:
         self.EXIT_LOOP = False
-        self.GAME_STATE.load_track()
 
         self.GAME_STATE.CAR_PREVIEW_DATA.rotation = 0
         self.GAME_STATE.CAR_PREVIEW_DATA.size = 40
