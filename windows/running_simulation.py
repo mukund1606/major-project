@@ -63,23 +63,23 @@ class RunningSimulationWindow:
         button_height = math.floor(HEIGHT * 0.075)
         button_font_size = math.floor(button_height * 0.4)
 
-        self.back_button = Button(
-            2,  # x
-            2,  # y
-            button_width,
-            button_height,
-            "Back",
-            button_font_size,
-            Color.WHITE,  # Text color
-        )
-
         radar_button_text = "Hide Radars" if Car.DRAW_SENSORS else "Show Radars"
         self.radar_button = Button(
-            WIDTH - button_width - 2,  # x
+            WIDTH - button_width - 2,
             2,  # y
             button_width,
             button_height,
             radar_button_text,
+            button_font_size,
+            Color.WHITE,  # Text color
+        )
+
+        self.back_button = Button(
+            WIDTH - (button_width + 2) * 2,
+            2,  # y
+            button_width,
+            button_height,
+            "Back",
             button_font_size,
             Color.WHITE,  # Text color
         )
@@ -134,6 +134,8 @@ class RunningSimulationWindow:
             screen.blit(self.placed_marker, self.placed_marker_rect)
 
         for button in self.buttons:
+            if self.IS_RUNNING and button.text == "Back":
+                continue
             button.draw(screen)
 
         if self.GAME_STATE.BEST_VISUAL_NN is not None:
