@@ -26,22 +26,28 @@ class CheckpointPreview:
         self.FONT = pygame.font.SysFont(DEFAULT_FONT, math.floor(HEIGHT * 0.025))
 
     def draw(self, screen: pygame.Surface) -> None:
-        pygame.draw.rect(screen, Color.WHITE, (self.x, self.y, self.width, self.height))
+        # Update rect position with scroll offset
+        adjusted_y = self.y + self.y_offset
+        pygame.draw.rect(
+            screen, Color.WHITE, (self.x, adjusted_y, self.width, self.height)
+        )
         # Draw the border
         pygame.draw.rect(
-            screen, Color.BLACK, (self.x, self.y, self.width, self.height), 2
+            screen, Color.BLACK, (self.x, adjusted_y, self.width, self.height), 2
         )
         text = self.FONT.render(self.name, True, Color.BLACK)
         text_rect = text.get_rect(
-            center=(self.x + self.width / 2, self.y + self.height / 2)
+            center=(self.x + self.width / 2, adjusted_y + self.height / 2)
         )
         screen.blit(text, text_rect)
 
     def handle_event(self, event: pygame.event.Event) -> bool:
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-            # Update collision detection to use scrolled position
-            mouse_pos = event.pos
-            if self.rect.collidepoint(mouse_pos):
+            # Create a temporary rect with the scrolled position for collision detection
+            scrolled_rect = pygame.Rect(
+                self.x, self.y + self.y_offset, self.width, self.height
+            )
+            if scrolled_rect.collidepoint(event.pos):
                 return True
         return False
 
@@ -123,17 +129,25 @@ class SelectGenerationWindow:
         )
         screen.set_clip(scroll_area)
 
-        for preview in self.CHECKPOINTS:
-            # Adjust preview position by scroll amount
-            preview.y_offset = self.scroll_y
-            # Only draw if in visible area
-            if (
-                preview.y + preview.y_offset
-                >= self.VISIBLE_AREA_START - self.PREVIEW_HEIGHT
-                and preview.y + preview.y_offset
-                <= self.VISIBLE_AREA_START + self.VISIBLE_AREA_HEIGHT
-            ):
-                preview.draw(screen)
+        if not self.CHECKPOINTS:
+            # Display "No generations found" message
+            no_gen_text = self.HEADING_FONT.render(
+                "No generations found", True, Color.BLACK
+            )
+            no_gen_rect = no_gen_text.get_rect(center=(WIDTH // 2, HEIGHT // 2))
+            screen.blit(no_gen_text, no_gen_rect)
+        else:
+            for preview in self.CHECKPOINTS:
+                # Adjust preview position by scroll amount
+                preview.y_offset = self.scroll_y
+                # Only draw if in visible area
+                if (
+                    preview.y + preview.y_offset
+                    >= self.VISIBLE_AREA_START - self.PREVIEW_HEIGHT
+                    and preview.y + preview.y_offset
+                    <= self.VISIBLE_AREA_START + self.VISIBLE_AREA_HEIGHT
+                ):
+                    preview.draw(screen)
 
         # Reset clipping
         screen.set_clip(None)

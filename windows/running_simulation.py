@@ -148,6 +148,41 @@ class RunningSimulationWindow:
             NEAT_CONFIG_PATH,
         )
 
+        if not self.GAME_STATE.IS_TRAINING_MODE:
+            if self.GAME_STATE.CHECKPOINT_POPULATION is None:
+                print("No checkpoint population available for replay mode")
+                return
+
+            # Get the top 5 genomes from the checkpoint population
+            all_genomes = []
+            for (
+                genome_id,
+                genome,
+            ) in self.GAME_STATE.CHECKPOINT_POPULATION.population.items():
+                if genome.fitness is not None:
+                    all_genomes.append((genome_id, genome))
+
+            # Sort genomes by fitness in descending order
+            all_genomes.sort(
+                key=lambda x: (
+                    x[1].fitness if x[1].fitness is not None else -float("inf")
+                ),
+                reverse=True,
+            )
+
+            # Take top 5 genomes
+            top_genomes = all_genomes[:5]
+
+            if not top_genomes:
+                print("No valid genomes found in checkpoint population")
+                return
+
+            # Run the top genomes in a loop
+            while not self.EXIT_LOOP:
+                self.run_simulation(top_genomes, config)
+            return
+
+        # Training mode logic
         population = neat.Population(config)
 
         if self.GAME_STATE.CHECKPOINT_POPULATION is not None:
