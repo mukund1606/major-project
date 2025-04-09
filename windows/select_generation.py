@@ -179,7 +179,7 @@ class SelectGenerationWindow:
             return
 
         checkpoints = os.listdir(path)
-
+        checkpoints.sort()
         previews = []
         for i, checkpoint in enumerate(checkpoints):
             row = i // self.GRID_COLUMNS
@@ -218,6 +218,7 @@ class SelectGenerationWindow:
                     self.get_checkpoints()
                     self.scroll_y = 0  # Reset scroll position on refresh
                 elif button.text == "New Sim":
+                    self.GAME_STATE.CURRENT_GENERATION = 0
                     self.GAME_STATE.set_state(AvailableSteps.PLACE_CAR)
                     self.EXIT_LOOP = True
 
@@ -229,7 +230,8 @@ class SelectGenerationWindow:
 
         for preview in self.CHECKPOINTS:
             if preview.handle_event(event):
-                self.GAME_STATE.load_checkpoint(preview.path)
+                generation = int(preview.name.split("-")[-1])
+                self.GAME_STATE.load_checkpoint(preview.path, generation)
                 self.GAME_STATE.set_state(AvailableSteps.PLACE_CAR)
                 self.EXIT_LOOP = True
 

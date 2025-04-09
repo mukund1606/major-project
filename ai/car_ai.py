@@ -7,7 +7,6 @@ from render.game_state import GameState
 
 
 class CarAI:
-    TOTAL_GENERATIONS = 0
     TIME_LIMIT = 60
 
     def __init__(
@@ -16,7 +15,7 @@ class CarAI:
         genomes: list[tuple[int, neat.DefaultGenome]],
         game_state: GameState,
     ):
-        CarAI.TOTAL_GENERATIONS += 1
+        game_state.CURRENT_GENERATION += 1
         self.GAME_STATE = game_state
 
         self.genomes = genomes

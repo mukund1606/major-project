@@ -216,7 +216,6 @@ class RunningSimulationWindow:
     ) -> None:
         # Create car_ai with current rotation and scale
         self.car_ai = CarAI(config, genomes, self.GAME_STATE)
-        self.GAME_STATE.CURRENT_GENERATION = self.car_ai.TOTAL_GENERATIONS
 
         self.simulation_start_time = time.time()
         self.IS_RUNNING = True
@@ -309,7 +308,6 @@ class RunningSimulationWindow:
         self.IS_RUNNING = False  # Ensure simulation is not running initially
 
         self.test_car = Car(self.GAME_STATE)  # Create test car for preview
-        self.GAME_STATE.CURRENT_GENERATION = 0
         self.GAME_STATE.ALIVE_CARS = 0
         self.GAME_STATE.BEST_FITNESS = 0.0
 

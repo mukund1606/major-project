@@ -67,10 +67,11 @@ class GameState:
         self.TRACK.track_name = track_name
         self.TRACK.load_track()
 
-    def load_checkpoint(self, checkpoint_path: str) -> None:
+    def load_checkpoint(self, checkpoint_path: str, generation: int) -> None:
         """Load or reload the checkpoint."""
         checkpoint = neat.Checkpointer.restore_checkpoint(checkpoint_path)
         self.CHECKPOINT_POPULATION = checkpoint
+        self.CURRENT_GENERATION = generation
 
     def get_previous_state(self) -> AvailableSteps:
         if len(self.PREVIOUS_STATES) > 0:

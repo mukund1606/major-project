@@ -113,6 +113,7 @@ class SelectTrackWindow:
         tracks = [
             track for track in tracks if track.endswith((".png", ".jpg", ".jpeg"))
         ]
+        tracks.sort()
         previews = []
         for i, track in enumerate(tracks):
             row = i // self.GRID_COLUMNS
