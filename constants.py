@@ -1,4 +1,9 @@
 import math
+import os
+
+NEAT_CONFIG_PATH = "neat-config.ini"
+DEBUG = True
+MAX_SIMULATIONS = 1000
 
 WIDTH = 1280
 HEIGHT = 720
@@ -29,3 +34,13 @@ CHECKPOINT_INTERVAL = 1
 CHECKPOINT_MAX_HISTORY = 100
 
 DATA_FILE = "simulation_data.json"
+
+for folder in [
+    BACKGROUND_FOLDER,
+    CARS_FOLDER,
+    MAPS_FOLDER,
+    MARKERS_FOLDER,
+    TRACKS_FOLDER,
+    CHECKPOINT_FOLDER,
+]:
+    os.makedirs(folder, exist_ok=True)

@@ -1,8 +1,6 @@
 from render.game_engine import GameEngine
 
-NEAT_CONFIG_PATH = "neat_config.ini"
-DEBUG = True
-MAX_SIMULATIONS = 1000
+from constants import NEAT_CONFIG_PATH, DEBUG, MAX_SIMULATIONS
 
 
 def main() -> None:

@@ -50,12 +50,12 @@ class AvailableSteps(Enum):
     SIMULATE_AI = "simulate_ai"  # Done
 
     PLACE_CAR = "place_car"  # Done
-    PLACE_CHECKPOINTS = "place_checkpoints"  # TODO (Maybe)
+    # PLACE_CHECKPOINTS = "place_checkpoints"  # TODO (Maybe)
     PLACE_DESTINATION_MARKER = "place_destination_point"  # Done
 
     SELECT_GENERATION = "select_generation"  # TODO
 
-    START_SIMULATION = "start_simulation"  # TODO
+    START_SIMULATION = "start_simulation"  # Partially Done
 
     EXIT = "exit"  # Done
 

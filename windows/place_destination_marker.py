@@ -60,7 +60,7 @@ class PlaceDestinationMarkerWindow:
             BACK_BUTTON_HEIGHT,
             "Back",
             math.floor(BACK_BUTTON_HEIGHT * 0.4),
-            Color.WHITE,
+            Color.BLACK,
         )
 
         self.buttons = [BACK_BUTTON]
@@ -90,11 +90,6 @@ class PlaceDestinationMarkerWindow:
             self.MARKER_IMG, (marker_size, marker_size)
         )
         self.marker_preview_rect = self.marker_preview.get_rect()
-
-    def load_track_canvas(self) -> None:
-        """Ensure track is loaded in game state"""
-        if not self.GAME_STATE.TRACK:
-            self.GAME_STATE.load_track()
 
     def place_marker(self, mouse_pos: tuple[int, int]) -> None:
         self.GAME_STATE.FINAL_MARKER_PREVIEW_DATA.position = mouse_pos
@@ -156,8 +151,11 @@ class PlaceDestinationMarkerWindow:
 
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_RETURN:
-                self.GAME_STATE.set_state(AvailableSteps.START_SIMULATION)
-                self.EXIT_LOOP = True
+                if self.GAME_STATE.FINAL_MARKER_PREVIEW_DATA.position != (0, 0):
+                    self.GAME_STATE.set_state(AvailableSteps.START_SIMULATION)
+                    self.EXIT_LOOP = True
+                else:
+                    pass
 
         if event.type == pygame.MOUSEBUTTONDOWN:
             # Scroll to change marker size
@@ -184,11 +182,12 @@ class PlaceDestinationMarkerWindow:
 
     def run(self) -> None:
         self.EXIT_LOOP = False
-        self.load_track_canvas()
+        self.GAME_STATE.load_track()
+        self.update_car_size()
+
         self.GAME_STATE.FINAL_MARKER_PREVIEW_DATA.size = 60
         self.GAME_STATE.FINAL_MARKER_PREVIEW_DATA.position = (0, 0)
         self.update_marker_size()
-        self.update_car_size()
 
         while not self.EXIT_LOOP:
             for event in pygame.event.get():

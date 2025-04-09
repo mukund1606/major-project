@@ -1,6 +1,7 @@
 import math
 import os
 import pygame
+import sys
 
 from constants import WIDTH, HEIGHT, FPS, DEFAULT_FONT, BACKGROUND_FOLDER
 from data_models import AvailableSteps, Color
@@ -61,6 +62,8 @@ class MainMenuWindow:
                     self.EXIT_LOOP = True
                 elif button.text == "Exit":
                     self.EXIT_LOOP = True
+                    pygame.quit()
+                    sys.exit(0)
 
     def run(self) -> None:
         self.EXIT_LOOP = False

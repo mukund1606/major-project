@@ -76,11 +76,6 @@ class PlaceCarWindow:
         # Get the rect for positioning
         self.car_preview_rect = self.car_preview.get_rect()
 
-    def load_track_canvas(self) -> None:
-        """Ensure track is loaded in game state"""
-        if not self.GAME_STATE.TRACK:
-            self.GAME_STATE.load_track()
-
     def place_car(self, mouse_pos: tuple[int, int]) -> None:
         self.GAME_STATE.CAR_PREVIEW_DATA.position = mouse_pos
         self.placed_car = self.car_preview.copy()
@@ -168,7 +163,8 @@ class PlaceCarWindow:
 
     def run(self) -> None:
         self.EXIT_LOOP = False
-        self.load_track_canvas()
+        self.GAME_STATE.load_track()
+
         self.GAME_STATE.CAR_PREVIEW_DATA.rotation = 0
         self.GAME_STATE.CAR_PREVIEW_DATA.size = 40
         self.GAME_STATE.CAR_PREVIEW_DATA.position = (0, 0)

@@ -26,15 +26,28 @@ class Button:
         self.surface.fill((0, 0, 0, 0))
 
         if self.color is not None:
+            color_with_alpha = (
+                self.color if isinstance(self.color, tuple) else tuple(self.color)
+            )
+            if len(color_with_alpha) == 3:
+                draw_color = color_with_alpha
+            else:
+                draw_color = color_with_alpha[:3]  # Take only RGB components
+
+            alpha = 255 if not self.is_hovered else 191
+
             pygame.draw.rect(
                 self.surface,
-                (*self.color, 255 if not self.is_hovered else 191),
+                draw_color,
                 self.surface.get_rect(),
                 border_radius=5,
             )
+
+            self.surface.set_alpha(alpha)
+
             pygame.draw.rect(
                 self.surface,
-                (100, 100, 100, 255),
+                (100, 100, 100),
                 self.surface.get_rect(),
                 2,
                 border_radius=5,

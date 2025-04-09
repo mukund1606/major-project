@@ -1,59 +1,87 @@
 import os
+from PIL import Image, ImageMode
 import pygame
+
+from utils import calculate_track_length
 
 from constants import (
     TRACK_CANVAS_WIDTH,
     TRACK_CANVAS_HEIGHT,
     TRACKS_FOLDER,
+    MAPS_FOLDER,
 )
+
 from data_models import Color
 
 
 class Track:
-    def __init__(self, track_name: str, border_thickness: int = 2) -> None:
-        self.track_name = track_name
-        self.border_thickness = border_thickness
+    IS_MAP = False
+    BORDER_THICKNESS = 2
+    TRACK_LENGTH = 0
 
-        # Create the track canvas
-        self.surface = pygame.Surface(
+    def __init__(self, track_name: str, is_map: bool = False) -> None:
+        self.IS_MAP = is_map
+        self.track_name = track_name
+
+        # Create the track canvas (WHITE)
+        self.AI_SURFACE = pygame.Surface(
             (TRACK_CANVAS_WIDTH, TRACK_CANVAS_HEIGHT), pygame.SRCALPHA
         )
-        self.surface.fill(Color.WHITE)
+        self.AI_SURFACE.fill(Color.WHITE)
+
+        # Foreground for map (TODO)
+        self.FOREGROUND = pygame.Surface(
+            (TRACK_CANVAS_WIDTH, TRACK_CANVAS_HEIGHT), pygame.SRCALPHA
+        )
+        self.FOREGROUND.fill(Color.WHITE)
 
         # Load track if name is provided
-        if track_name:
+        if track_name and track_name != "":
             self.load_track()
 
         # Draw border
         self.draw_border()
 
     def load_track(self) -> None:
-        """Load and scale the track image."""
-        track_path = os.path.join(TRACKS_FOLDER, f"{self.track_name}.png")
-        track_image = pygame.image.load(track_path).convert_alpha()
-        self.surface = pygame.transform.scale(
-            track_image, (TRACK_CANVAS_WIDTH, TRACK_CANVAS_HEIGHT)
-        )
-        self.draw_border()
+        self.TRACK_LENGTH = 0
+        if not self.IS_MAP:
+            track_path = os.path.join(TRACKS_FOLDER, f"{self.track_name}.png")
+            img = Image.open(track_path)
+            rgb_img = img.convert("RGB")
+            track_image = pygame.image.fromstring(
+                rgb_img.tobytes(), rgb_img.size, "RGB"
+            )
+            self.AI_SURFACE = pygame.transform.scale(
+                track_image, (TRACK_CANVAS_WIDTH, TRACK_CANVAS_HEIGHT)
+            )
+            self.TRACK_LENGTH = calculate_track_length(img)
+            print(f"Track length: {self.TRACK_LENGTH}")
+            self.draw_border()
+        else:
+            self.set_foreground()
+            self.draw_border()
 
     def draw_border(self) -> None:
-        """Draw border around the track."""
         pygame.draw.rect(
-            self.surface,
+            self.AI_SURFACE,
             Color.BLACK,
-            self.surface.get_rect(),
-            self.border_thickness,
+            self.AI_SURFACE.get_rect(),
+            self.BORDER_THICKNESS,
         )
 
-    def get_rect(self, **kwargs) -> pygame.Rect:
-        """Get the track's rect with optional positioning arguments."""
-        return self.surface.get_rect(**kwargs)
+    # Only used for map
+    def set_foreground(self):  # TODO: Implement This
+        pass
 
+    # AI Ke liye
+    def get_ai_track(self) -> pygame.Surface:
+        return self.AI_SURFACE
+
+    # Screen Pe draw kar diya
     def draw(
         self, screen: pygame.Surface, position: tuple[int, int] | pygame.Rect
     ) -> None:
-        """Draw the track on the screen at the specified position."""
-        if isinstance(position, tuple):
-            screen.blit(self.surface, position)
+        if not self.IS_MAP:
+            screen.blit(self.AI_SURFACE, position)
         else:
-            screen.blit(self.surface, position)
+            screen.blit(self.FOREGROUND, position)

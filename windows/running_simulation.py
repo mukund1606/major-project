@@ -41,11 +41,6 @@ class RunningSimulationWindow:
         )
         self.TRACK_CANVAS_RECT.center = (CANVAS_CENTER_X, CANVAS_CENTER_Y)
 
-    def load_track_canvas(self) -> None:
-        """Ensure track is loaded in game state"""
-        if not self.GAME_STATE.TRACK:
-            self.GAME_STATE.load_track()
-
     def draw(self, screen: pygame.Surface) -> None:
         screen.blit(self.BACKGROUND, (0, 0))
         title_surface = self.HEADING_FONT.render(self.TITLE, True, Color.BLACK)
@@ -78,7 +73,7 @@ class RunningSimulationWindow:
 
     def run(self) -> None:
         self.EXIT_LOOP = False
-        self.load_track_canvas()
+        self.GAME_STATE.load_track()
 
         while not self.EXIT_LOOP:
             for event in pygame.event.get():
