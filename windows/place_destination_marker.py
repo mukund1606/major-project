@@ -73,8 +73,10 @@ class PlaceDestinationMarkerWindow:
 
     def update_car_size(self) -> None:
         car_size = self.GAME_STATE.CAR_PREVIEW_DATA.size
-        # Scale the original car image to current size
-        scaled_car = pygame.transform.scale(self.CAR_IMG, (car_size, car_size))
+        # Scale the original car image to current size with 0.6 aspect ratio
+        scaled_car = pygame.transform.scale(
+            self.CAR_IMG, (car_size, int(car_size * 0.6))
+        )
         # Create rotated version
         self.car_preview = pygame.transform.rotate(
             scaled_car, self.GAME_STATE.CAR_PREVIEW_DATA.rotation

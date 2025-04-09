@@ -13,7 +13,7 @@ class NN:
         self.nodes = []
         self.genome = genome
         self.pos = (int(pos[0] + Node.RADIUS), int(pos[1]))
-        input_names = ["0°", "45°", "90°", "135°", "180°"]
+        input_names = ["-90°", "-45°", "0°", "45°", "90°"]
         output_names = ["Left", "Right", "Accelerate", "Brake"]
         hidden_nodes = [n for n in genome.nodes.keys()]
         node_id_list = []

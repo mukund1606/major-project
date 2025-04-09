@@ -22,7 +22,7 @@ class Car:
     FINISH_LINE_CAR_SPRITE_PATH = os.path.join(CARS_FOLDER, "finish_line_car.png")
 
     CAR_SIZE_X: float = 40
-    CAR_SIZE_Y: float = 40
+    CAR_SIZE_Y: float = 24  # 0.6 times the width (40 * 0.6 = 24)
 
     MINIMUM_SPEED: float = 3
     MAXIMUM_SPEED: float = 20
@@ -59,7 +59,7 @@ class Car:
 
         # Modify size based on preview data
         self.CAR_SIZE_X = size
-        self.CAR_SIZE_Y = size
+        self.CAR_SIZE_Y = size * 0.6  # Maintain 0.6 aspect ratio
 
         # Modify angle based on preview data
         self.DEFAULT_ANGLE = rotation

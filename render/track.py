@@ -1,5 +1,5 @@
 import os
-from PIL import Image, ImageMode
+from PIL import Image
 import pygame
 
 from utils import calculate_track_length
