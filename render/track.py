@@ -50,15 +50,40 @@ class Track:
     def load_track(self) -> None:
         self.TRACK_LENGTH = 0
         if not self.IS_MAP:
+            # Create white background surface
+            self.AI_SURFACE = pygame.Surface(
+                (TRACK_CANVAS_WIDTH, TRACK_CANVAS_HEIGHT), pygame.SRCALPHA
+            )
+            self.AI_SURFACE.fill(Color.WHITE)
+
+            # Load the track image
             track_path = os.path.join(TRACKS_FOLDER, f"{self.track_name}.png")
             img = Image.open(track_path)
             rgb_img = img.convert("RGB")
             track_image = pygame.image.fromstring(
                 rgb_img.tobytes(), rgb_img.size, "RGB"
             )
-            self.AI_SURFACE = pygame.transform.scale(
-                track_image, (TRACK_CANVAS_WIDTH, TRACK_CANVAS_HEIGHT)
-            )
+
+            # Calculate the size to match either width or height while maintaining aspect ratio
+            track_width, track_height = track_image.get_size()
+            width_ratio = TRACK_CANVAS_WIDTH / track_width
+            height_ratio = TRACK_CANVAS_HEIGHT / track_height
+
+            # Use the smaller ratio to ensure track fits in canvas
+            scale_factor = min(width_ratio, height_ratio)
+            new_width = int(track_width * scale_factor)
+            new_height = int(track_height * scale_factor)
+
+            # Scale the track image
+            scaled_track = pygame.transform.scale(track_image, (new_width, new_height))
+
+            # Calculate center position
+            x = (TRACK_CANVAS_WIDTH - new_width) // 2
+            y = (TRACK_CANVAS_HEIGHT - new_height) // 2
+
+            # Blit the scaled track onto the white surface
+            self.AI_SURFACE.blit(scaled_track, (x, y))
+
             self.TRACK_LENGTH = calculate_track_length(img)
             self.draw_border()
         else:
