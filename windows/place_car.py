@@ -23,6 +23,7 @@ class PlaceCarWindow:
     TITLE = "Place Car"
     MAX_CAR_SIZE_LIMIT = 80
     MIN_CAR_SIZE_LIMIT = 5
+    ROTATION_SPEED = 2.5  # Degrees per frame
 
     def __init__(self, game_state: GameState) -> None:
         self.GAME_STATE = game_state
@@ -118,6 +119,20 @@ class PlaceCarWindow:
             self.placed_car_rect.center = self.GAME_STATE.CAR_PREVIEW_DATA.position
             screen.blit(self.placed_car, self.placed_car_rect)
 
+    def handle_rotation(self) -> None:
+        """Handle continuous rotation based on key state"""
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_LEFT]:
+            self.GAME_STATE.CAR_PREVIEW_DATA.rotation = (
+                self.GAME_STATE.CAR_PREVIEW_DATA.rotation + self.ROTATION_SPEED
+            ) % 360
+            self.update_car_size()
+        elif keys[pygame.K_RIGHT]:
+            self.GAME_STATE.CAR_PREVIEW_DATA.rotation = (
+                self.GAME_STATE.CAR_PREVIEW_DATA.rotation - self.ROTATION_SPEED
+            ) % 360
+            self.update_car_size()
+
     def handle_event(self, event: pygame.event.Event) -> None:
         MOUSE_PRESSED = pygame.mouse.get_pressed()
         mouse_pos = pygame.mouse.get_pos()
@@ -131,16 +146,6 @@ class PlaceCarWindow:
             if event.key == pygame.K_RETURN:
                 self.GAME_STATE.set_state(AvailableSteps.PLACE_DESTINATION_MARKER)
                 self.EXIT_LOOP = True
-            elif event.key == pygame.K_LEFT:
-                self.GAME_STATE.CAR_PREVIEW_DATA.rotation = (
-                    self.GAME_STATE.CAR_PREVIEW_DATA.rotation + 5
-                ) % 360
-                self.update_car_size()
-            elif event.key == pygame.K_RIGHT:
-                self.GAME_STATE.CAR_PREVIEW_DATA.rotation = (
-                    self.GAME_STATE.CAR_PREVIEW_DATA.rotation - 5
-                ) % 360
-                self.update_car_size()
 
         if event.type == pygame.MOUSEBUTTONDOWN:
             # Scroll to change car size
@@ -172,6 +177,9 @@ class PlaceCarWindow:
                 # Handle events
                 quit_event(event)
                 self.handle_event(event)
+
+            # Handle continuous rotation
+            self.handle_rotation()
 
             # Update the screen
             self.draw(self.GAME_STATE.SCREEN)

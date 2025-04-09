@@ -27,7 +27,8 @@ class TrainAIWindow:
         self.Y_BUTTON_SPACE = math.floor(HEIGHT * 0.14)
         self.TITLE_FONT = pygame.font.SysFont(DEFAULT_FONT, math.floor(HEIGHT * 0.08))
 
-        BUTTON_TEXT = ["Create New Track", "Select Track", "Select Map"]
+        # BUTTON_TEXT = ["Create New Track", "Select Track", "Select Map"]
+        BUTTON_TEXT = ["Create New Track", "Select Track"]
         self.buttons = [
             Button(
                 self.X_START + i * self.X_BUTTON_SPACE,
