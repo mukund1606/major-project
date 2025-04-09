@@ -86,31 +86,48 @@ class SelectGenerationWindow:
 
         self.HEADING_FONT = pygame.font.SysFont(DEFAULT_FONT, math.floor(HEIGHT * 0.05))
 
-        BACK_BUTTON_WIDTH = math.floor(WIDTH * 0.1)
-        BACK_BUTTON_HEIGHT = math.floor(HEIGHT * 0.075)
+        BUTTON_WIDTH = math.floor(WIDTH * 0.1)
+        BUTTON_HEIGHT = math.floor(HEIGHT * 0.075)
+        BUTTON_FONT_SIZE = math.floor(BUTTON_HEIGHT * 0.4)
+
+        # New Simulation button (only in training mode)
+        if self.GAME_STATE.IS_TRAINING_MODE:
+            NEW_SIM_BUTTON = Button(
+                2,  # x position - left aligned
+                2,  # y position - top aligned
+                BUTTON_WIDTH,
+                BUTTON_HEIGHT,
+                "New Sim",
+                BUTTON_FONT_SIZE,
+                Color.WHITE,
+            )
+            self.buttons = [NEW_SIM_BUTTON]
+        else:
+            self.buttons = []
+
+        # Back button
         BACK_BUTTON = Button(
-            WIDTH - BACK_BUTTON_WIDTH - 2,
+            WIDTH - BUTTON_WIDTH - 2,
             2,
-            BACK_BUTTON_WIDTH,
-            BACK_BUTTON_HEIGHT,
+            BUTTON_WIDTH,
+            BUTTON_HEIGHT,
             "Back",
-            math.floor(BACK_BUTTON_HEIGHT * 0.4),
+            BUTTON_FONT_SIZE,
             Color.WHITE,
         )
+        self.buttons.append(BACK_BUTTON)
 
-        REFRESH_BUTTON_WIDTH = math.floor(WIDTH * 0.1)
-        REFRESH_BUTTON_HEIGHT = math.floor(HEIGHT * 0.075)
+        # Refresh button
         REFRESH_BUTTON = Button(
-            WIDTH - (REFRESH_BUTTON_WIDTH + 2) * 2,
+            WIDTH - (BUTTON_WIDTH + 2) * 2,
             2,
-            REFRESH_BUTTON_WIDTH,
-            REFRESH_BUTTON_HEIGHT,
+            BUTTON_WIDTH,
+            BUTTON_HEIGHT,
             "Refresh",
-            math.floor(REFRESH_BUTTON_HEIGHT * 0.4),
+            BUTTON_FONT_SIZE,
             Color.WHITE,
         )
-
-        self.buttons = [BACK_BUTTON, REFRESH_BUTTON]
+        self.buttons.append(REFRESH_BUTTON)
 
         self.get_checkpoints()
 
@@ -200,6 +217,9 @@ class SelectGenerationWindow:
                 elif button.text == "Refresh":
                     self.get_checkpoints()
                     self.scroll_y = 0  # Reset scroll position on refresh
+                elif button.text == "New Sim":
+                    self.GAME_STATE.set_state(AvailableSteps.PLACE_CAR)
+                    self.EXIT_LOOP = True
 
         # Handle mouse wheel scrolling
         if event.type == pygame.MOUSEWHEEL:

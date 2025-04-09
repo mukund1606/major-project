@@ -162,10 +162,7 @@ class SelectTrackWindow:
         for preview in self.TRACKS:
             if preview.handle_event(event):
                 self.GAME_STATE.load_track(preview.track_name)
-                if self.GAME_STATE.IS_TRAINING_MODE:
-                    self.GAME_STATE.set_state(AvailableSteps.PLACE_CAR)
-                else:
-                    self.GAME_STATE.set_state(AvailableSteps.SELECT_GENERATION)
+                self.GAME_STATE.set_state(AvailableSteps.SELECT_GENERATION)
                 self.EXIT_LOOP = True
 
     def run(self) -> None:

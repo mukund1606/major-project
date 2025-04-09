@@ -24,12 +24,12 @@ class Car:
     CAR_SIZE_X: float = 40
     CAR_SIZE_Y: float = 40
 
-    MINIMUM_SPEED: float = 2
+    MINIMUM_SPEED: float = 3
     MAXIMUM_SPEED: float = 20
     ANGLE_INCREMENT: float = 10
     SPEED_INCREMENT: float = 1
 
-    DEFAULT_SPEED: float = 3
+    DEFAULT_SPEED: float = 5
     DEFAULT_ANGLE: float = 0
 
     COLLISION_SURFACE_COLOR = Color.WHITE
