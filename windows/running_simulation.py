@@ -142,14 +142,14 @@ class RunningSimulationWindow:
         if self.IS_RUNNING:
             self.instructions = [
                 f"Generation: {self.GAME_STATE.CURRENT_GENERATION}, Alive: {self.GAME_STATE.ALIVE_CARS}, Best Fitness: {self.GAME_STATE.BEST_FITNESS:.2f}, Time Left: {CarAI.TIME_LIMIT - (time.time() - self.simulation_start_time):.2f}s.",
-                f"Zoom: {self.GAME_STATE.TRACK.zoom_level:.1f}x (CTRL+Wheel to zoom, CTRL+Drag to pan, R to reset view)",
-                f"G: Toggle Grid, O: Toggle Overlay",
+                f"Zoom: {self.GAME_STATE.TRACK.zoom_level:.1f}x (CTRL+Wheel to zoom, CTRL+Drag to pan, CTRL+R to reset view)",
+                f"R: Toggle Radars, G: Toggle Grid, O: Toggle Overlay",
             ]
         else:
             self.instructions = [
                 "Press Enter to Start Simulation, Use Back button to return to previous step.",
-                f"Zoom: {self.GAME_STATE.TRACK.zoom_level:.1f}x (CTRL+Wheel to zoom, CTRL+Drag to pan, R to reset view)",
-                f"G: Toggle Grid, O: Toggle Overlay",
+                f"Zoom: {self.GAME_STATE.TRACK.zoom_level:.1f}x (CTRL+Wheel to zoom, CTRL+Drag to pan, CTRL+R to reset view)",
+                f"R: Toggle Radars, G: Toggle Grid, O: Toggle Overlay",
             ]
 
         line_spacing = self.FONT.get_linesize()
@@ -327,11 +327,26 @@ class RunningSimulationWindow:
                         mouse_pos, self.GAME_STATE.TRACK_CANVAS_RECT
                     )
 
-                # Reset zoom with R key
-                if event.type == pygame.KEYDOWN and event.key == pygame.K_r:
+                # Reset zoom with CTRL+R key
+                if (
+                    event.type == pygame.KEYDOWN
+                    and event.key == pygame.K_r
+                    and zoom_mode
+                ):
                     self.GAME_STATE.TRACK.zoom_level = 1.0
                     self.GAME_STATE.TRACK.viewport_x = 0
                     self.GAME_STATE.TRACK.viewport_y = 0
+
+                # Toggle radar with R key (without CTRL)
+                elif (
+                    event.type == pygame.KEYDOWN
+                    and event.key == pygame.K_r
+                    and not zoom_mode
+                ):
+                    Car.toggle_sensors()
+                    self.radar_button.text = (
+                        "Hide Radars" if Car.DRAW_SENSORS else "Show Radars"
+                    )
 
                 # Toggle grid with G key
                 if event.type == pygame.KEYDOWN and event.key == pygame.K_g:
@@ -453,11 +468,18 @@ class RunningSimulationWindow:
                 mouse_pos, self.GAME_STATE.TRACK_CANVAS_RECT
             )
 
-        # Reset zoom with R key - always allowed
-        if event.type == pygame.KEYDOWN and event.key == pygame.K_r:
+        # Reset zoom with CTRL+R key - always allowed
+        if event.type == pygame.KEYDOWN and event.key == pygame.K_r and zoom_mode:
             self.GAME_STATE.TRACK.zoom_level = 1.0
             self.GAME_STATE.TRACK.viewport_x = 0
             self.GAME_STATE.TRACK.viewport_y = 0
+
+        # Toggle radar with R key (without CTRL)
+        elif event.type == pygame.KEYDOWN and event.key == pygame.K_r and not zoom_mode:
+            Car.toggle_sensors()
+            self.radar_button.text = (
+                "Hide Radars" if Car.DRAW_SENSORS else "Show Radars"
+            )
 
         # Toggle grid with G key
         if event.type == pygame.KEYDOWN and event.key == pygame.K_g:

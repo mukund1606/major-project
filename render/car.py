@@ -67,7 +67,7 @@ class Car:
         self.CAR_SIZE_X = size
         self.CAR_SIZE_Y = size * 0.6  # Maintain 0.6 aspect ratio
 
-        # Modify angle based on preview data
+        # Modify angle based on preview data - save rotation from car placement
         self.DEFAULT_ANGLE = rotation
 
         # Scale sprites based on preview data
@@ -88,10 +88,12 @@ class Car:
 
         if self.GAME_STATE.TRACK.IS_MAP:
             self.speed = self.MAP_DEFAULT_SPEED
-            self.angle = self.MAP_DEFAULT_ANGLE
+            # Use the rotation value directly instead of the class constant
+            self.angle = rotation
         else:
             self.speed = self.DEFAULT_SPEED
-            self.angle = self.DEFAULT_ANGLE
+            # Use the rotation value directly instead of the class constant
+            self.angle = rotation
 
         self.current_size = [self.CAR_SIZE_X, self.CAR_SIZE_Y]
 
