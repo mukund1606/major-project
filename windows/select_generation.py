@@ -178,9 +178,12 @@ class SelectGenerationWindow:
             os.makedirs(path)
             self.CHECKPOINTS = []
             return
-
+        if path == "checkpoints/":
+            self.CHECKPOINTS = []
+            return
         checkpoints = os.listdir(path)
-        checkpoints.sort()
+        # Sort checkpoints by generation number instead of alphabetically
+        checkpoints.sort(key=lambda x: int(x.split("-")[-1]))
         previews = []
         for i, checkpoint in enumerate(checkpoints):
             row = i // self.GRID_COLUMNS
@@ -213,7 +216,10 @@ class SelectGenerationWindow:
         for button in self.buttons:
             if button.handle_event(event):
                 if button.text == "Back":
-                    self.GAME_STATE.set_previous_state()
+                    if self.GAME_STATE.TRACK.IS_MAP:
+                        self.GAME_STATE.set_previous_state(steps=2)
+                    else:
+                        self.GAME_STATE.set_previous_state()
                     self.EXIT_LOOP = True
                 elif button.text == "Refresh":
                     self.get_checkpoints()
