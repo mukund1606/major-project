@@ -1,6 +1,7 @@
 import os
 from PIL import Image
 import pygame
+import math
 
 from utils import calculate_track_length, load_csv
 
@@ -405,15 +406,38 @@ class Track:
 
         # A* pathfinding implementation
         def heuristic(a, b):
-            """Manhattan distance heuristic"""
-            return abs(a[0] - b[0]) + abs(a[1] - b[1])
+            """Euclidean distance heuristic with straightness bias"""
+            # Use Euclidean distance instead of Manhattan for more natural paths
+            return math.sqrt((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2)
 
-        def get_neighbors(pos, max_width, max_height):
-            """Get valid neighbor cells that have roads (4-directional movement)"""
+        def get_neighbors(pos, max_width, max_height, current_direction=None):
+            """Get valid neighbor cells that have roads (4-directional movement)
+
+            Now includes the current_direction parameter to favor straight paths
+            """
             x, y = pos
             neighbors = []
-            # Check all 4 directions (up, right, down, left)
-            for nx, ny in [(0, -1), (1, 0), (0, 1), (-1, 0)]:
+            directions = [(0, -1), (1, 0), (0, 1), (-1, 0)]  # up, right, down, left
+
+            # First add neighbors that continue in the same direction (if any)
+            if current_direction is not None:
+                nx, ny = current_direction
+                new_x, new_y = x + nx, y + ny
+                if (
+                    0 <= new_x < max_width
+                    and 0 <= new_y < max_height
+                    and new_y < len(road_grid)
+                    and new_x < len(road_grid[new_y])
+                    and road_grid[new_y][new_x] == 1
+                ):
+                    neighbors.append(((new_x, new_y), current_direction))
+
+            # Then add all other valid neighbors
+            for nx, ny in directions:
+                # Skip if this is the current direction (already added)
+                if current_direction is not None and (nx, ny) == current_direction:
+                    continue
+
                 new_x, new_y = x + nx, y + ny
                 # Ensure neighbor is within grid bounds and is a road
                 if (
@@ -423,7 +447,7 @@ class Track:
                     and new_x < len(road_grid[new_y])
                     and road_grid[new_y][new_x] == 1
                 ):
-                    neighbors.append((new_x, new_y))
+                    neighbors.append(((new_x, new_y), (nx, ny)))
             return neighbors
 
         # Convert pixel coordinates to grid coordinates, accounting for the map offset
@@ -496,6 +520,8 @@ class Track:
         closed_set = set()
         # Track where each node came from for path reconstruction
         came_from = {}
+        # Track the direction to reach each node
+        direction_to = {}
 
         # G-score: cost from start to current node (using dictionaries with int values)
         g_score = {}
@@ -543,14 +569,29 @@ class Track:
             open_set.remove(current)
             closed_set.add(current)
 
+            # Get current direction (if any)
+            current_direction = direction_to.get(current, None)
+
             # Check all neighbors
-            for neighbor in get_neighbors(current, grid_width, grid_height):
+            for neighbor_data in get_neighbors(
+                current, grid_width, grid_height, current_direction
+            ):
+                neighbor, direction = neighbor_data
+
                 # Skip if already processed
                 if neighbor in closed_set:
                     continue
 
-                # Calculate tentative g_score
-                tentative_g_score = g_score.get(current, float("inf")) + 1
+                # Calculate tentative g_score with direction change penalty
+                # Base cost is 1 for movement
+                move_cost = 1
+
+                # Add direction change penalty
+                if current_direction is not None and direction != current_direction:
+                    # Higher penalty (1.5) for direction changes to discourage zig-zags
+                    move_cost += 1.5
+
+                tentative_g_score = g_score.get(current, float("inf")) + move_cost
 
                 # If neighbor not in open set, add it
                 if neighbor not in open_set:
@@ -561,10 +602,9 @@ class Track:
 
                 # This path is the best so far, record it
                 came_from[neighbor] = current
+                direction_to[neighbor] = direction
                 g_score[neighbor] = tentative_g_score
-                f_score[neighbor] = int(
-                    tentative_g_score + heuristic(neighbor, end_grid)
-                )
+                f_score[neighbor] = tentative_g_score + heuristic(neighbor, end_grid)
 
         # Convert AI_SURFACE to PIL Image to calculate track length
         surface_string = pygame.image.tostring(self.AI_SURFACE, "RGB")
