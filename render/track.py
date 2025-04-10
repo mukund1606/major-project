@@ -9,6 +9,8 @@ from constants import (
     TRACK_CANVAS_HEIGHT,
     TRACKS_FOLDER,
     TILEMAP_RATIO,
+    TILEMAP_WIDTH,
+    TILEMAP_HEIGHT,
 )
 
 from data_models import Color
@@ -83,16 +85,35 @@ class Track:
         # Clear the grid surface
         self.GRID_SURFACE.fill((0, 0, 0, 0))  # Fully transparent
 
-        # Calculate number of grid cells
-        grid_cols = int(TRACK_CANVAS_WIDTH // GRID_SIZE) + 1
-        grid_rows = int(TRACK_CANVAS_HEIGHT // GRID_SIZE) + 1
+        # Get map offsets (if available)
+        offset_x = getattr(self, "map_offset_x", 0)
+        offset_y = getattr(self, "map_offset_y", 0)
 
-        # Draw grid lines
+        # Calculate the actual map width and height
+        actual_map_width = TILEMAP_WIDTH * TILEMAP_RATIO
+        actual_map_height = TILEMAP_HEIGHT * TILEMAP_RATIO
+
+        # Calculate number of grid cells based on the actual map size
+        grid_cols = int(actual_map_width // GRID_SIZE)
+        grid_rows = int(actual_map_height // GRID_SIZE)
+
+        # Draw grid lines with proper offset
         for col in range(grid_cols):
             for row in range(grid_rows):
-                rect = pygame.Rect(
-                    col * GRID_SIZE, row * GRID_SIZE, GRID_SIZE, GRID_SIZE
-                )
+                # Only draw if within the canvas bounds
+                x = col * GRID_SIZE + offset_x
+                y = row * GRID_SIZE + offset_y
+
+                # Skip if outside the canvas area
+                if (
+                    x >= TRACK_CANVAS_WIDTH
+                    or y >= TRACK_CANVAS_HEIGHT
+                    or x + GRID_SIZE <= 0
+                    or y + GRID_SIZE <= 0
+                ):
+                    continue
+
+                rect = pygame.Rect(x, y, GRID_SIZE, GRID_SIZE)
                 # Draw transparent rectangles with 1px black border
                 pygame.draw.rect(
                     self.GRID_SURFACE, (0, 0, 0, 0), rect
@@ -180,12 +201,44 @@ class Track:
         # Clear the foreground surface
         self.FOREGROUND.fill(Color.WHITE)
 
-        # Draw each tile according to the MAP_DATA
+        # First pass to determine the actual map bounds
+        min_x, min_y = float("inf"), float("inf")
+        max_x, max_y = 0, 0
+
+        for y, row in enumerate(self.MAP_DATA):
+            for x, tile_id in enumerate(row):
+                if (
+                    tile_id == "" or tile_id == "0"
+                ):  # Skip empty cells or tiles with ID 0
+                    continue
+
+                min_x = min(min_x, x)
+                min_y = min(min_y, y)
+                max_x = max(max_x, x)
+                max_y = max(max_y, y)
+
+        # Calculate the actual map dimensions
+        map_width = (max_x - min_x + 1) * tile_width
+        map_height = (max_y - min_y + 1) * tile_height
+
+        # Calculate the offset to center the map
+        offset_x = (TRACK_CANVAS_WIDTH - map_width) // 2
+        offset_y = (TRACK_CANVAS_HEIGHT - map_height) // 2
+
+        # Ensure we don't have negative offsets (this would happen if map is larger than canvas)
+        offset_x = max(0, offset_x)
+        offset_y = max(0, offset_y)
+
+        # Store the offset for later use in road positioning
+        self.map_offset_x = offset_x - min_x * tile_width
+        self.map_offset_y = offset_y - min_y * tile_height
+
+        # Draw each tile according to the MAP_DATA with centering offset
         for y, row in enumerate(self.MAP_DATA):
             for x, tile_id in enumerate(row):
                 if tile_id == "":  # Skip empty cells
                     continue
-                    print(f"Error with tile at {x},{y}: {tile_id_str} - {e}")
+
                 # Convert to integer and subtract 1 (CSV data starts from 1)
                 tile_id = int(tile_id) - 1
 
@@ -199,9 +252,9 @@ class Track:
                     tile_x * tile_width, tile_y * tile_height, tile_width, tile_height
                 )
 
-                # Calculate destination position
-                dest_x = x * tile_width
-                dest_y = y * tile_height
+                # Calculate destination position with centering offset
+                dest_x = x * tile_width + self.map_offset_x
+                dest_y = y * tile_height + self.map_offset_y
 
                 # Draw the tile on the foreground
                 self.FOREGROUND.blit(tileset, (dest_x, dest_y), tile_rect)
@@ -222,9 +275,9 @@ class Track:
                 if road == "":  # Skip empty cells
                     continue
 
-                # Calculate position
-                dest_x = x * BOX_SIZE
-                dest_y = y * BOX_SIZE
+                # Calculate position with the same offset used for the map
+                dest_x = x * BOX_SIZE + getattr(self, "map_offset_x", 0)
+                dest_y = y * BOX_SIZE + getattr(self, "map_offset_y", 0)
 
                 # Convert road value to int (0 for white, 1 for black)
                 try:
@@ -254,6 +307,9 @@ class Track:
         # Redraw the border after filling in road data
         self.draw_border()
 
+        # Also update the GRID_SURFACE with the same offset
+        self.create_grid()
+
     def load_roads_from_points(
         self,
         start_point: tuple[int, int],
@@ -277,7 +333,11 @@ class Track:
         # Calculate grid size based on TILEMAP_RATIO
         BOX_SIZE = 80 * TILEMAP_RATIO
 
-        # Adjust start and end points based on track position
+        # Get map offsets
+        offset_x = getattr(self, "map_offset_x", 0)
+        offset_y = getattr(self, "map_offset_y", 0)
+
+        # Adjust start and end points based on track position and map offset
         if track_position:
             # Convert screen coordinates to track coordinates
             adjusted_start = (
@@ -350,12 +410,15 @@ class Track:
                     neighbors.append((new_x, new_y))
             return neighbors
 
-        # Convert pixel coordinates to grid coordinates
+        # Convert pixel coordinates to grid coordinates, accounting for the map offset
         start_grid = (
-            int(adjusted_start[0] / BOX_SIZE),
-            int(adjusted_start[1] / BOX_SIZE),
+            int((adjusted_start[0] - offset_x) / BOX_SIZE),
+            int((adjusted_start[1] - offset_y) / BOX_SIZE),
         )
-        end_grid = (int(adjusted_end[0] / BOX_SIZE), int(adjusted_end[1] / BOX_SIZE))
+        end_grid = (
+            int((adjusted_end[0] - offset_x) / BOX_SIZE),
+            int((adjusted_end[1] - offset_y) / BOX_SIZE),
+        )
 
         # Ensure start and end are within grid bounds
         start_grid = (
@@ -448,11 +511,11 @@ class Track:
                 path.append(start_grid)
                 path.reverse()
 
-                # Draw the path on AI_SURFACE
+                # Draw the path on AI_SURFACE with proper map offset
                 for grid_pos in path:
                     road_rect = pygame.Rect(
-                        grid_pos[0] * BOX_SIZE,
-                        grid_pos[1] * BOX_SIZE,
+                        grid_pos[0] * BOX_SIZE + offset_x,
+                        grid_pos[1] * BOX_SIZE + offset_y,
                         BOX_SIZE,
                         BOX_SIZE,
                     )
