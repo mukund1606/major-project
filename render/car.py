@@ -333,9 +333,7 @@ class Car:
 
             # Check for collision using relative rects
             if finish_line_rect.colliderect(car_rect):
-                self._final_reward = (
-                    self.get_reward() + 150
-                )  # Bonus for reaching finish line
+                self._final_reward = self.get_reward() + 150
                 self.reached_finish_line = True
                 return True
         return False

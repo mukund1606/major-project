@@ -155,7 +155,7 @@ class RunningSimulationWindow:
                 print("No checkpoint population available for replay mode")
                 return
 
-            # Get the top 5 genomes from the checkpoint population
+            # Get the best genome from the checkpoint population
             all_genomes = []
             for (
                 genome_id,
@@ -172,16 +172,14 @@ class RunningSimulationWindow:
                 reverse=True,
             )
 
-            # Take top 5 genomes
-            top_genomes = all_genomes[:5]
+            # Take only the best genome
+            best_genome = all_genomes[:1]
 
-            if not top_genomes:
+            if not best_genome:
                 print("No valid genomes found in checkpoint population")
                 return
 
-            # Run the top genomes in a loop
-            while not self.EXIT_LOOP:
-                self.run_simulation(top_genomes, config)
+            self.run_simulation(best_genome, config)
             return
 
         # Training mode logic

@@ -87,6 +87,7 @@ class CarAI:
         self.remaining_cars = sum(1 for car in self.cars if car.alive)
 
     def compute_reward(self, track: pygame.Surface) -> None:
+        # First update all sprites and compute rewards
         for i, car in enumerate(self.cars):
             # Update sprite regardless of alive status to handle dead sprite rendering
             car.update_sprite(track)
@@ -94,5 +95,21 @@ class CarAI:
                 self.genomes[i][1].fitness = car.get_reward()  # type: ignore
                 if self.genomes[i][1].fitness > self.BEST_FITNESS:  # type: ignore
                     self.BEST_FITNESS = self.genomes[i][1].fitness  # type: ignore
-                    self.BEST_VISUAL_NN = self.VISUAL_NNS[i]
-                    self.GAME_STATE.BEST_VISUAL_NN = self.BEST_VISUAL_NN
+
+        # Now find the best alive genome and show its NN
+        best_alive_fitness = -float("inf")
+        best_alive_index = -1
+
+        for i, car in enumerate(self.cars):
+            if car.alive and self.genomes[i][1].fitness is not None:
+                # Also Ignore if the car has reached the finish line
+                if car.reached_finish_line:
+                    continue
+                if self.genomes[i][1].fitness > best_alive_fitness:
+                    best_alive_fitness = self.genomes[i][1].fitness
+                    best_alive_index = i
+
+        # If we found a best alive genome, show its neural network
+        if best_alive_index != -1:
+            self.BEST_VISUAL_NN = self.VISUAL_NNS[best_alive_index]
+            self.GAME_STATE.BEST_VISUAL_NN = self.BEST_VISUAL_NN
