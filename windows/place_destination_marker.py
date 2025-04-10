@@ -102,12 +102,13 @@ class PlaceDestinationMarkerWindow:
             self.GAME_STATE.TRACK_CANVAS_RECT.y,
         )
 
-        # Generate the road with adjusted coordinates
-        self.GAME_STATE.TRACK.load_roads_from_points(
-            self.GAME_STATE.CAR_PREVIEW_DATA.position,
-            self.GAME_STATE.FINAL_MARKER_PREVIEW_DATA.position,
-            track_position,
-        )
+        if self.GAME_STATE.TRACK.IS_MAP:
+            # Generate the road with adjusted coordinates
+            self.GAME_STATE.TRACK.load_roads_from_points(
+                self.GAME_STATE.CAR_PREVIEW_DATA.position,
+                self.GAME_STATE.FINAL_MARKER_PREVIEW_DATA.position,
+                track_position,
+            )
 
     def draw(self, screen: pygame.Surface) -> None:
         screen.blit(self.BACKGROUND, (0, 0))

@@ -16,6 +16,8 @@ from constants import (
 
 from data_models import Color
 
+from render.map.map_generator import MapGenerator
+
 
 class Track:
     IS_MAP: bool = False
@@ -210,6 +212,12 @@ class Track:
         tileset = pygame.transform.scale_by(tileset, TILEMAP_RATIO)
         return tileset
 
+    def generate_scaled_map(self) -> pygame.Surface:
+        map_generator = MapGenerator()
+        map = map_generator.generate_map_surface()
+        scaled_map = pygame.transform.scale_by(map, TILEMAP_RATIO)
+        return scaled_map
+
     def load_tilemap(self, tileset: pygame.Surface) -> None:
         # Get tileset dimensions
         tile_width = tileset.get_width() // 11  # 11 columns in tileset
@@ -250,31 +258,39 @@ class Track:
         self.map_offset_x = offset_x - min_x * tile_width
         self.map_offset_y = offset_y - min_y * tile_height
 
+        surface = self.generate_scaled_map()
+        x_offset = self.map_offset_x
+        y_offset = self.map_offset_y
+
+        # Draw the map on the foreground surface
+        self.FOREGROUND.blit(surface, (x_offset, y_offset))
+
+        # NOTE -> Old Way of Drawing Tiles
         # Draw each tile according to the MAP_DATA with centering offset
-        for y, row in enumerate(self.MAP_DATA):
-            for x, tile_id in enumerate(row):
-                if tile_id == "":  # Skip empty cells
-                    continue
+        # for y, row in enumerate(self.MAP_DATA):
+        #     for x, tile_id in enumerate(row):
+        #         if tile_id == "":  # Skip empty cells
+        #             continue
 
-                # Convert to integer and subtract 1 (CSV data starts from 1)
-                tile_id = int(tile_id) - 1
+        #         # Convert to integer and subtract 1 (CSV data starts from 1)
+        #         tile_id = int(tile_id) - 1
 
-                # Calculate position in tileset
-                # For an 11x20 tileset, we need to convert the linear index to x,y coordinates
-                tile_x = tile_id % 11  # 11 tiles per row
-                tile_y = tile_id // 11
+        #         # Calculate position in tileset
+        #         # For an 11x20 tileset, we need to convert the linear index to x,y coordinates
+        #         tile_x = tile_id % 11  # 11 tiles per row
+        #         tile_y = tile_id // 11
 
-                # Create a rect for the source tile
-                tile_rect = pygame.Rect(
-                    tile_x * tile_width, tile_y * tile_height, tile_width, tile_height
-                )
+        #         # Create a rect for the source tile
+        #         tile_rect = pygame.Rect(
+        #             tile_x * tile_width, tile_y * tile_height, tile_width, tile_height
+        #         )
 
-                # Calculate destination position with centering offset
-                dest_x = x * tile_width + self.map_offset_x
-                dest_y = y * tile_height + self.map_offset_y
+        #         # Calculate destination position with centering offset
+        #         dest_x = x * tile_width + self.map_offset_x
+        #         dest_y = y * tile_height + self.map_offset_y
 
-                # Draw the tile on the foreground
-                self.FOREGROUND.blit(tileset, (dest_x, dest_y), tile_rect)
+        #         # Draw the tile on the foreground
+        #         self.FOREGROUND.blit(tileset, (dest_x, dest_y), tile_rect)
 
     def load_roads(self) -> None:
         # Roads data is in self.ROADS_DATA 0 for white 1 for black

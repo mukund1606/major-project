@@ -178,7 +178,7 @@ class SelectGenerationWindow:
             os.makedirs(path)
             self.CHECKPOINTS = []
             return
-        if path == "checkpoints/":
+        if self.GAME_STATE.TRACK.track_name == "":
             self.CHECKPOINTS = []
             return
         checkpoints = os.listdir(path)
