@@ -121,7 +121,7 @@ class PlaceDestinationMarkerWindow:
         instructions = [
             "Left Click to Place Marker. Press Enter for Next Step",
             f"Mouse Wheel to Change Size ({self.GAME_STATE.FINAL_MARKER_PREVIEW_DATA.size})",
-            f"Overlay: {'On' if self.GAME_STATE.TRACK.SHOW_OVERLAY else 'Off'}, Grid: {'On' if self.GAME_STATE.TRACK.SHOW_GRID else 'Off'}",
+            f"Overlay: {'On' if self.GAME_STATE.TRACK.SHOW_OVERLAY else 'Off'} (O To Toggle), Grid: {'On' if self.GAME_STATE.TRACK.SHOW_GRID else 'Off'} (G To Toggle)",
         ]
         line_spacing = self.FONT.get_linesize()
         start_y = HEIGHT * 0.1
@@ -167,6 +167,8 @@ class PlaceDestinationMarkerWindow:
                 if self.GAME_STATE.FINAL_MARKER_PREVIEW_DATA.position != (0, 0):
                     self.GAME_STATE.set_state(AvailableSteps.START_SIMULATION)
                     self.EXIT_LOOP = True
+                else:
+                    print("Please place a marker first")
             if event.key == pygame.K_g:
                 self.GAME_STATE.TRACK.toggle_grid()
             if event.key == pygame.K_o:

@@ -24,8 +24,8 @@ class Track:
     BORDER_THICKNESS = 2
     TRACK_LENGTH = 0
     FINAL_LINE_POSITION: tuple[float, float, float] = (0, 0, 0)
-    SHOW_GRID = False
-    SHOW_OVERLAY = False
+    SHOW_GRID = True
+    SHOW_OVERLAY = True
 
     # Zoom and pan properties
     MIN_ZOOM = 1

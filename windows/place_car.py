@@ -94,7 +94,7 @@ class PlaceCarWindow:
         instructions = [
             "Left Click to Place Car. Press Enter for Next Step",
             f"Arrow Keys to Rotate Car ({self.GAME_STATE.CAR_PREVIEW_DATA.rotation}°), Mouse Wheel to Change Size ({self.GAME_STATE.CAR_PREVIEW_DATA.size})",
-            f"Overlay: {'On' if self.GAME_STATE.TRACK.SHOW_OVERLAY else 'Off'}, Grid: {'On' if self.GAME_STATE.TRACK.SHOW_GRID else 'Off'}",
+            f"Overlay: {'On' if self.GAME_STATE.TRACK.SHOW_OVERLAY else 'Off'} (O To Toggle), Grid: {'On' if self.GAME_STATE.TRACK.SHOW_GRID else 'Off'} (G To Toggle)",
         ]
         line_spacing = self.FONT.get_linesize()
         start_y = HEIGHT * 0.1
@@ -146,8 +146,11 @@ class PlaceCarWindow:
 
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_RETURN:
-                self.GAME_STATE.set_state(AvailableSteps.PLACE_DESTINATION_MARKER)
-                self.EXIT_LOOP = True
+                if self.GAME_STATE.CAR_PREVIEW_DATA.position != (0, 0):
+                    self.GAME_STATE.set_state(AvailableSteps.PLACE_DESTINATION_MARKER)
+                    self.EXIT_LOOP = True
+                else:
+                    print("Please place a car first")
             if event.key == pygame.K_g:
                 self.GAME_STATE.TRACK.toggle_grid()
             if event.key == pygame.K_o:
