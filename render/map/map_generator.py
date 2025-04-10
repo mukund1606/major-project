@@ -2,13 +2,15 @@ import pygame
 from data_models import Color
 from constants import TILE_SIZE
 from tilemap import TILEMAP
-from render.map.sprites import Spritesheet, Block, Road, Tree, Water
+from render.map.sprites import Spritesheet, Block, Road, Tree
 
 
 class MapGenerator:
     def __init__(self):
         pygame.init()
         self.road_spritesheet = Spritesheet("assets/sprites/road.png")
+        self.building_spritesheet = Spritesheet("assets/sprites/blocks.png")
+        self.boundary_spritesheet = Spritesheet("assets/sprites/boundary.png")
         self.map_width = len(TILEMAP[0]) * TILE_SIZE
         self.map_height = len(TILEMAP) * TILE_SIZE
 
@@ -19,14 +21,17 @@ class MapGenerator:
 
         for i, row in enumerate(TILEMAP):
             for j, column in enumerate(row):
-                if column == "B":
-                    block = Block(j, i, self.road_spritesheet)
+                if column in "BFhpmtlgTMQ*nqrsRA/|#":
+                    block = Block(
+                        j,
+                        i,
+                        column,
+                        self.building_spritesheet,
+                        self.boundary_spritesheet,
+                    )
                     map_surface.blit(block.image, (block.rect.x, block.rect.y))
-                elif column == "W":
-                    water = Water(j, i, self.road_spritesheet)
-                    map_surface.blit(water.image, (water.rect.x, water.rect.y))
                 elif column == "G":
-                    tree = Tree(j, i, self.road_spritesheet)
+                    tree = Tree(j, i, self.boundary_spritesheet)
                     map_surface.blit(tree.image, (tree.rect.x, tree.rect.y))
                 elif column in "1za2xbC3ycw4dveLHEO":
                     road = Road(j, i, column, self.road_spritesheet)
