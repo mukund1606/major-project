@@ -39,7 +39,7 @@ class GameState:
         self.max_simulations = max_simulations
         self.title = "AI Car Simulation"
         self.MOUSE_UP = False
-        self.TRACK = Track("", False)
+        self.TRACK = Track("")
         self.TRACK_CANVAS_RECT = pygame.Rect(0, 0, 0, 0)
 
         if not os.path.exists(CHECKPOINT_FOLDER):

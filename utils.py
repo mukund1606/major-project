@@ -1,4 +1,5 @@
 import cv2
+import csv
 import numpy as np
 from PIL import Image
 import pygame
@@ -35,3 +36,12 @@ def calculate_track_length(pil_image: Image.Image):
     track_length = np.count_nonzero(skeleton)
 
     return track_length
+
+
+def load_csv(path: str) -> list[list[int]]:
+    data: list[list[int]] = []
+    with open(path, "r") as file:
+        reader = csv.reader(file)
+        for row in reader:
+            data.append([int(cell) for cell in row])
+    return data

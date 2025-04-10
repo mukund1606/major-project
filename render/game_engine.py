@@ -15,6 +15,7 @@ from windows.place_car import PlaceCarWindow
 from windows.place_destination_marker import PlaceDestinationMarkerWindow
 from windows.running_simulation import RunningSimulationWindow
 from windows.select_generation import SelectGenerationWindow
+from windows.map_window import MapWindow
 
 
 class GameEngine:
@@ -35,6 +36,7 @@ class GameEngine:
             self.GAME_STATE
         )
         self.RUNNING_SIMULATION_WINDOW = RunningSimulationWindow(self.GAME_STATE)
+        self.MAP_WINDOW = MapWindow(self.GAME_STATE)
 
     def run(self) -> None:
         while True:
@@ -61,10 +63,10 @@ class GameEngine:
             elif self.GAME_STATE.CURRENT_STATE == AvailableSteps.SELECT_TRACK:
                 pygame.display.set_caption("AI Car Simulation - Select Track")
                 self.SELECT_TRACK_WINDOW.run()
-            elif self.GAME_STATE.CURRENT_STATE == AvailableSteps.SELECT_MAP:
-                pygame.display.set_caption("AI Car Simulation - Select Map")
-                print("TODO: Select Map")
-                break
+            elif self.GAME_STATE.CURRENT_STATE == AvailableSteps.MAP:
+                pygame.display.set_caption("AI Car Simulation - Map")
+                self.GAME_STATE.TRACK.IS_MAP = True
+                self.MAP_WINDOW.run()
             elif self.GAME_STATE.CURRENT_STATE == AvailableSteps.SELECT_GENERATION:
                 pygame.display.set_caption("AI Car Simulation - Select Generation")
                 self.SELECT_GENERATION_WINDOW.run()

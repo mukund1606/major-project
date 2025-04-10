@@ -27,8 +27,7 @@ class TrainAIWindow:
         self.Y_BUTTON_SPACE = math.floor(HEIGHT * 0.14)
         self.TITLE_FONT = pygame.font.SysFont(DEFAULT_FONT, math.floor(HEIGHT * 0.08))
 
-        # BUTTON_TEXT = ["Create New Track", "Select Track", "Select Map"]
-        BUTTON_TEXT = ["Create New Track", "Select Track"]
+        BUTTON_TEXT = ["Create New Track", "Select Track", "Map"]
         self.buttons = [
             Button(
                 self.X_START + i * self.X_BUTTON_SPACE,
@@ -74,8 +73,8 @@ class TrainAIWindow:
                 elif button.text == "Select Track":
                     self.GAME_STATE.set_state(AvailableSteps.SELECT_TRACK)
                     self.EXIT_LOOP = True
-                elif button.text == "Select Map":
-                    self.GAME_STATE.set_state(AvailableSteps.SELECT_MAP)
+                elif button.text == "Map":
+                    self.GAME_STATE.set_state(AvailableSteps.MAP)
                     self.EXIT_LOOP = True
                 elif button.text == "Back":
                     self.GAME_STATE.set_previous_state()
