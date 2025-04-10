@@ -110,11 +110,23 @@ class RunningSimulationWindow:
             Color.WHITE,  # Text color
         )
 
+        # Add zoom reset button
+        self.zoom_reset_button = Button(
+            WIDTH - button_width - 2,
+            (button_height + 4) * 2,  # y
+            button_width,
+            button_height,
+            "Reset Zoom",
+            button_font_size,
+            Color.WHITE,  # Text color
+        )
+
         self.buttons = [
             self.back_button,
             self.radar_button,
             self.grid_button,
             self.overlay_button,
+            self.zoom_reset_button,
         ]
         # ---------------------
 
@@ -129,13 +141,15 @@ class RunningSimulationWindow:
         # Update instructions based on simulation state
         if self.IS_RUNNING:
             self.instructions = [
-                f"Generation: {self.GAME_STATE.CURRENT_GENERATION}, Alive: {self.GAME_STATE.ALIVE_CARS}, Best Fitness: {self.GAME_STATE.BEST_FITNESS:.2f}",
-                f"Time Left: {CarAI.TIME_LIMIT - (time.time() - self.simulation_start_time):.2f} seconds. Running Simulation...",
+                f"Generation: {self.GAME_STATE.CURRENT_GENERATION}, Alive: {self.GAME_STATE.ALIVE_CARS}, Best Fitness: {self.GAME_STATE.BEST_FITNESS:.2f}, Time Left: {CarAI.TIME_LIMIT - (time.time() - self.simulation_start_time):.2f}s.",
+                f"Zoom: {self.GAME_STATE.TRACK.zoom_level:.1f}x (CTRL+Wheel to zoom, CTRL+Drag to pan, R to reset view)",
+                f"G: Toggle Grid, O: Toggle Overlay",
             ]
         else:
             self.instructions = [
-                "Press Enter to Start Simulation",
-                "Use Back button to return to previous step.",
+                "Press Enter to Start Simulation, Use Back button to return to previous step.",
+                f"Zoom: {self.GAME_STATE.TRACK.zoom_level:.1f}x (CTRL+Wheel to zoom, CTRL+Drag to pan, R to reset view)",
+                f"G: Toggle Grid, O: Toggle Overlay",
             ]
 
         line_spacing = self.FONT.get_linesize()
@@ -158,11 +172,35 @@ class RunningSimulationWindow:
             self.test_car.draw(screen)
 
         # Draw placed marker
-        if self.GAME_STATE.FINAL_MARKER_PREVIEW_DATA.position != (0, 0):
-            self.placed_marker_rect.center = (
-                self.GAME_STATE.FINAL_MARKER_PREVIEW_DATA.position
+        if self.GAME_STATE.FINAL_MARKER_PREVIEW_DATA.position != (0, 0) and hasattr(
+            self, "marker_track_position"
+        ):
+            # Handle marker drawing with zoom
+            marker_size = self.GAME_STATE.FINAL_MARKER_PREVIEW_DATA.size
+
+            # Get track's zoom level and viewport
+            zoom_level = self.GAME_STATE.TRACK.zoom_level
+            viewport_x = getattr(self.GAME_STATE.TRACK, "viewport_x", 0)
+            viewport_y = getattr(self.GAME_STATE.TRACK, "viewport_y", 0)
+            canvas_rect = self.GAME_STATE.TRACK_CANVAS_RECT
+
+            # Get marker track position (relative to track canvas)
+            rel_track_x = self.marker_track_position[0]
+            rel_track_y = self.marker_track_position[1]
+
+            # Apply viewport transformation (similar to how Track.draw does it)
+            screen_x = (rel_track_x - viewport_x) * zoom_level + canvas_rect.x
+            screen_y = (rel_track_y - viewport_y) * zoom_level + canvas_rect.y
+
+            # Scale marker based on zoom level
+            zoomed_size = int(marker_size * zoom_level)
+            zoomed_marker = pygame.transform.scale(
+                self.MARKER_IMG, (zoomed_size, zoomed_size)
             )
-            screen.blit(self.placed_marker, self.placed_marker_rect)
+            zoomed_marker_rect = zoomed_marker.get_rect(center=(screen_x, screen_y))
+
+            # Draw the marker
+            screen.blit(zoomed_marker, zoomed_marker_rect)
 
         for button in self.buttons:
             if self.IS_RUNNING and button.text == "Back":
@@ -255,8 +293,65 @@ class RunningSimulationWindow:
             for event in pygame.event.get():
                 quit_event(event)  # Use utility function for quitting
 
-                # Pass mouse events to radar button for hover effects and clicks
-                # Only handle radar button clicks during simulation
+                # Handle zoom and pan during simulation
+                keys = pygame.key.get_pressed()
+                mouse_pos = pygame.mouse.get_pos()
+                zoom_mode = keys[pygame.K_LCTRL] or keys[pygame.K_RCTRL]
+
+                # Zoom with mouse wheel
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    if zoom_mode and (event.button == 4 or event.button == 5):
+                        if self.GAME_STATE.TRACK_CANVAS_RECT.collidepoint(mouse_pos):
+                            zoom_in = event.button == 4
+                            self.GAME_STATE.TRACK.handle_zoom(
+                                zoom_in, mouse_pos, self.GAME_STATE.TRACK_CANVAS_RECT
+                            )
+
+                # Pan with mouse drag
+                if (
+                    zoom_mode
+                    and event.type == pygame.MOUSEBUTTONDOWN
+                    and event.button == 1
+                ):
+                    if self.GAME_STATE.TRACK_CANVAS_RECT.collidepoint(mouse_pos):
+                        self.GAME_STATE.TRACK.start_panning(mouse_pos)
+
+                if event.type == pygame.MOUSEBUTTONUP and event.button == 1:
+                    self.GAME_STATE.TRACK.stop_panning()
+
+                if (
+                    event.type == pygame.MOUSEMOTION
+                    and self.GAME_STATE.TRACK.is_panning
+                ):
+                    self.GAME_STATE.TRACK.update_panning(
+                        mouse_pos, self.GAME_STATE.TRACK_CANVAS_RECT
+                    )
+
+                # Reset zoom with R key
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_r:
+                    self.GAME_STATE.TRACK.zoom_level = 1.0
+                    self.GAME_STATE.TRACK.viewport_x = 0
+                    self.GAME_STATE.TRACK.viewport_y = 0
+
+                # Toggle grid with G key
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_g:
+                    self.GAME_STATE.TRACK.toggle_grid()
+                    self.grid_button.text = (
+                        "Show Grid"
+                        if not self.GAME_STATE.TRACK.SHOW_GRID
+                        else "Hide Grid"
+                    )
+
+                # Toggle overlay with O key
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_o:
+                    self.GAME_STATE.TRACK.toggle_overlay()
+                    self.overlay_button.text = (
+                        "Show Overlay"
+                        if not self.GAME_STATE.TRACK.SHOW_OVERLAY
+                        else "Hide Overlay"
+                    )
+
+                # Pass mouse events to buttons for hover effects and clicks
                 if self.radar_button.handle_event(event):
                     Car.toggle_sensors()
                     self.radar_button.text = (
@@ -276,6 +371,11 @@ class RunningSimulationWindow:
                         if self.GAME_STATE.TRACK.SHOW_OVERLAY
                         else "Hide Overlay"
                     )
+
+                if self.zoom_reset_button.handle_event(event):
+                    self.GAME_STATE.TRACK.zoom_level = 1.0
+                    self.GAME_STATE.TRACK.viewport_x = 0
+                    self.GAME_STATE.TRACK.viewport_y = 0
 
             # ---- Simulation Logic ----
             self.car_ai.compute()
@@ -322,13 +422,70 @@ class RunningSimulationWindow:
         self.IS_RUNNING = False
 
     def handle_event(self, event: pygame.event.Event) -> None:
+        # Get mouse position and key state
+        mouse_pos = pygame.mouse.get_pos()
+        keys = pygame.key.get_pressed()
+
+        # Determine if we're in zoom/pan mode (CTRL key held)
+        zoom_mode = keys[pygame.K_LCTRL] or keys[pygame.K_RCTRL]
+
+        # Handle zooming with mouse wheel when CTRL is held - always allowed
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if zoom_mode and (
+                event.button == 4 or event.button == 5
+            ):  # Mouse wheel + CTRL
+                if self.GAME_STATE.TRACK_CANVAS_RECT.collidepoint(mouse_pos):
+                    zoom_in = event.button == 4  # Wheel up = zoom in
+                    self.GAME_STATE.TRACK.handle_zoom(
+                        zoom_in, mouse_pos, self.GAME_STATE.TRACK_CANVAS_RECT
+                    )
+
+        # Handle panning with mouse drag when CTRL is held - always allowed
+        if zoom_mode and event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            if self.GAME_STATE.TRACK_CANVAS_RECT.collidepoint(mouse_pos):
+                self.GAME_STATE.TRACK.start_panning(mouse_pos)
+
+        if event.type == pygame.MOUSEBUTTONUP and event.button == 1:
+            self.GAME_STATE.TRACK.stop_panning()
+
+        if event.type == pygame.MOUSEMOTION and self.GAME_STATE.TRACK.is_panning:
+            self.GAME_STATE.TRACK.update_panning(
+                mouse_pos, self.GAME_STATE.TRACK_CANVAS_RECT
+            )
+
+        # Reset zoom with R key - always allowed
+        if event.type == pygame.KEYDOWN and event.key == pygame.K_r:
+            self.GAME_STATE.TRACK.zoom_level = 1.0
+            self.GAME_STATE.TRACK.viewport_x = 0
+            self.GAME_STATE.TRACK.viewport_y = 0
+
+        # Toggle grid with G key
+        if event.type == pygame.KEYDOWN and event.key == pygame.K_g:
+            self.GAME_STATE.TRACK.toggle_grid()
+            self.grid_button.text = (
+                "Show Grid" if not self.GAME_STATE.TRACK.SHOW_GRID else "Hide Grid"
+            )
+
+        # Toggle overlay with O key
+        if event.type == pygame.KEYDOWN and event.key == pygame.K_o:
+            self.GAME_STATE.TRACK.toggle_overlay()
+            self.overlay_button.text = (
+                "Show Overlay"
+                if not self.GAME_STATE.TRACK.SHOW_OVERLAY
+                else "Hide Overlay"
+            )
+
         # Handle events *before* simulation starts (Enter key)
-        # Or button clicks when not simulating
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_RETURN and not self.IS_RUNNING:
                 self.start_ai_simulation()  # Start the NEAT process
 
-        self.radar_button.handle_event(event)  # Allow toggle even before start
+        # Handle button clicks
+        self.radar_button.handle_event(event)
+        self.grid_button.handle_event(event)
+        self.overlay_button.handle_event(event)
+        self.zoom_reset_button.handle_event(event)
+
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             if self.radar_button.is_hovered:
                 Car.toggle_sensors()
@@ -350,8 +507,14 @@ class RunningSimulationWindow:
                     else "Hide Overlay"
                 )
 
+            elif self.zoom_reset_button.is_hovered:
+                # Reset zoom and viewport
+                self.GAME_STATE.TRACK.zoom_level = 1.0
+                self.GAME_STATE.TRACK.viewport_x = 0
+                self.GAME_STATE.TRACK.viewport_y = 0
+
         if not self.IS_RUNNING:
-            # Update hover state for both buttons
+            # Update hover state for back button
             self.back_button.handle_event(event)
 
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
@@ -376,6 +539,14 @@ class RunningSimulationWindow:
             self.placed_marker_rect = self.placed_marker.get_rect()
             self.placed_marker_rect.center = (
                 self.GAME_STATE.FINAL_MARKER_PREVIEW_DATA.position
+            )
+
+            # Store marker position relative to the track canvas for proper zooming
+            canvas_rect = self.GAME_STATE.TRACK_CANVAS_RECT
+            marker_pos = self.GAME_STATE.FINAL_MARKER_PREVIEW_DATA.position
+            self.marker_track_position = (
+                marker_pos[0] - canvas_rect.x,
+                marker_pos[1] - canvas_rect.y,
             )
 
         # Main Window Loop

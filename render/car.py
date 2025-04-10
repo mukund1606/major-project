@@ -495,34 +495,106 @@ class Car:
         Args:
             screen (pygame.Surface): The main display screen.
         """
-        # Calculate absolute screen position for blitting
-        screen_pos_x = self.position[0] + self.track_canvas_offset[0]
-        screen_pos_y = self.position[1] + self.track_canvas_offset[1]
-        screen_position = (screen_pos_x, screen_pos_y)
+        # Get the track's zoom level and viewport
+        zoom_level = self.GAME_STATE.TRACK.zoom_level
+        viewport_x = getattr(self.GAME_STATE.TRACK, "viewport_x", 0)
+        viewport_y = getattr(self.GAME_STATE.TRACK, "viewport_y", 0)
 
-        screen.blit(self.sprite, screen_position)
+        # If track is not zoomed, use normal drawing
+        if zoom_level == 1.0:
+            # Calculate absolute screen position for blitting
+            screen_pos_x = self.position[0] + self.track_canvas_offset[0]
+            screen_pos_y = self.position[1] + self.track_canvas_offset[1]
+            screen_position = (screen_pos_x, screen_pos_y)
 
-        # Draw sensors if enabled and car is alive
-        if Car.DRAW_SENSORS and self.alive:
-            # Calculate absolute screen center
-            screen_center_x = self.center[0] + self.track_canvas_offset[0]
-            screen_center_y = self.center[1] + self.track_canvas_offset[1]
-            screen_center = (screen_center_x, screen_center_y)
+            screen.blit(self.sprite, screen_position)
 
-            for sensor in self.sensors:
-                # Calculate absolute screen position for sensor end point
-                rel_end_pos = sensor[0]
-                screen_end_pos_x = rel_end_pos[0] + self.track_canvas_offset[0]
-                screen_end_pos_y = rel_end_pos[1] + self.track_canvas_offset[1]
-                screen_end_position = (screen_end_pos_x, screen_end_pos_y)
+            # Draw sensors if enabled and car is alive
+            if Car.DRAW_SENSORS and self.alive:
+                # Calculate absolute screen center
+                screen_center_x = self.center[0] + self.track_canvas_offset[0]
+                screen_center_y = self.center[1] + self.track_canvas_offset[1]
+                screen_center = (screen_center_x, screen_center_y)
 
-                if self.GAME_STATE.TRACK.IS_MAP:
+                for sensor in self.sensors:
+                    # Calculate absolute screen position for sensor end point
+                    rel_end_pos = sensor[0]
+                    screen_end_pos_x = rel_end_pos[0] + self.track_canvas_offset[0]
+                    screen_end_pos_y = rel_end_pos[1] + self.track_canvas_offset[1]
+                    screen_end_position = (screen_end_pos_x, screen_end_pos_y)
+
+                    if self.GAME_STATE.TRACK.IS_MAP:
+                        pygame.draw.line(
+                            screen, Color.GREEN, screen_center, screen_end_position, 1
+                        )
+                        pygame.draw.circle(screen, Color.RED, screen_end_position, 2)
+                    else:
+                        pygame.draw.line(
+                            screen, Color.GREEN, screen_center, screen_end_position, 2
+                        )
+                        pygame.draw.circle(screen, Color.RED, screen_end_position, 4)
+        else:
+            # Zoomed drawing - need to transform coordinates
+            canvas_rect = self.GAME_STATE.TRACK_CANVAS_RECT
+
+            # Calculate car position in the zoomed viewport
+            # First get position relative to the viewport
+            rel_view_x = self.position[0] - viewport_x
+            rel_view_y = self.position[1] - viewport_y
+
+            # Scale by zoom and add canvas offset
+            screen_pos_x = rel_view_x * zoom_level + canvas_rect.x
+            screen_pos_y = rel_view_y * zoom_level + canvas_rect.y
+
+            # Scale the car sprite based on zoom level
+            zoomed_width = int(self.sprite.get_width() * zoom_level)
+            zoomed_height = int(self.sprite.get_height() * zoom_level)
+            zoomed_sprite = pygame.transform.scale(
+                self.sprite, (zoomed_width, zoomed_height)
+            )
+
+            # Draw the zoomed car
+            screen_position = (screen_pos_x, screen_pos_y)
+            screen.blit(zoomed_sprite, screen_position)
+
+            # Draw sensors if enabled and car is alive
+            if Car.DRAW_SENSORS and self.alive:
+                # Calculate center in zoomed coordinates
+                # First get center relative to viewport
+                rel_center_x = self.center[0] - viewport_x
+                rel_center_y = self.center[1] - viewport_y
+
+                # Scale by zoom and add canvas offset
+                screen_center_x = rel_center_x * zoom_level + canvas_rect.x
+                screen_center_y = rel_center_y * zoom_level + canvas_rect.y
+                screen_center = (screen_center_x, screen_center_y)
+
+                for sensor in self.sensors:
+                    # Get the sensor endpoint relative to viewport
+                    rel_end_pos = sensor[0]
+                    rel_end_x = rel_end_pos[0] - viewport_x
+                    rel_end_y = rel_end_pos[1] - viewport_y
+
+                    # Scale by zoom and add canvas offset
+                    screen_end_x = rel_end_x * zoom_level + canvas_rect.x
+                    screen_end_y = rel_end_y * zoom_level + canvas_rect.y
+                    screen_end_position = (screen_end_x, screen_end_y)
+
+                    # Draw sensor with scaled width
+                    line_width = 1 if self.GAME_STATE.TRACK.IS_MAP else 2
+                    circle_radius = 2 if self.GAME_STATE.TRACK.IS_MAP else 4
+
+                    # Scale line width and circle radius with zoom
+                    scaled_width = max(1, int(line_width * zoom_level))
+                    scaled_radius = max(1, int(circle_radius * zoom_level))
+
                     pygame.draw.line(
-                        screen, Color.GREEN, screen_center, screen_end_position, 1
+                        screen,
+                        Color.GREEN,
+                        screen_center,
+                        screen_end_position,
+                        scaled_width,
                     )
-                    pygame.draw.circle(screen, Color.RED, screen_end_position, 2)
-                else:
-                    pygame.draw.line(
-                        screen, Color.GREEN, screen_center, screen_end_position, 2
+                    pygame.draw.circle(
+                        screen, Color.RED, screen_end_position, scaled_radius
                     )
-                    pygame.draw.circle(screen, Color.RED, screen_end_position, 4)

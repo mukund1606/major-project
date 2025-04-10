@@ -24,6 +24,11 @@ class Track:
     SHOW_GRID = False
     SHOW_OVERLAY = False
 
+    # Zoom and pan properties
+    MIN_ZOOM = 1
+    MAX_ZOOM = 3.0
+    ZOOM_STEP = 0.1
+
     @classmethod
     def toggle_grid(cls):
         """Toggle the visibility of the grid"""
@@ -58,6 +63,17 @@ class Track:
         self.GRID_SURFACE = pygame.Surface(
             (TRACK_CANVAS_WIDTH, TRACK_CANVAS_HEIGHT), pygame.SRCALPHA
         )
+
+        # Zoom and pan state
+        self.zoom_level = 1.0
+        self.viewport_x = 0
+        self.viewport_y = 0
+        self.is_panning = False
+        self.pan_start_pos = (0, 0)
+
+        # Create a larger surface for zoomed view
+        self.zoomed_surface = None
+
         self.create_grid()
 
         # Load track if name is provided
@@ -580,22 +596,134 @@ class Track:
     def get_ai_track(self) -> pygame.Surface:
         return self.AI_SURFACE
 
+    def handle_zoom(
+        self, zoom_in: bool, mouse_pos: tuple[int, int], canvas_rect: pygame.Rect
+    ) -> None:
+        """Handle zooming in or out at the specified mouse position"""
+        # Calculate mouse position relative to the track canvas
+        rel_x = mouse_pos[0] - canvas_rect.x
+        rel_y = mouse_pos[1] - canvas_rect.y
+
+        # Calculate the mouse position in the current viewport coordinates
+        view_x = rel_x / self.zoom_level + self.viewport_x
+        view_y = rel_y / self.zoom_level + self.viewport_y
+
+        # Adjust zoom level
+        old_zoom = self.zoom_level
+        if zoom_in:
+            self.zoom_level = min(self.zoom_level + self.ZOOM_STEP, self.MAX_ZOOM)
+        else:
+            self.zoom_level = max(self.zoom_level - self.ZOOM_STEP, self.MIN_ZOOM)
+
+        # Only continue if zoom actually changed
+        if old_zoom != self.zoom_level:
+            # Adjust viewport to keep the mouse point at the same screen location
+            self.viewport_x = view_x - rel_x / self.zoom_level
+            self.viewport_y = view_y - rel_y / self.zoom_level
+
+            # Clamp viewport to prevent showing empty space
+            self._clamp_viewport(canvas_rect)
+
+    def start_panning(self, mouse_pos: tuple[int, int]) -> None:
+        """Start panning from the given mouse position"""
+        self.is_panning = True
+        self.pan_start_pos = mouse_pos
+
+    def update_panning(
+        self, mouse_pos: tuple[int, int], canvas_rect: pygame.Rect
+    ) -> None:
+        """Update panning based on mouse movement"""
+        if self.is_panning:
+            # Calculate the movement in screen pixels
+            delta_x = mouse_pos[0] - self.pan_start_pos[0]
+            delta_y = mouse_pos[1] - self.pan_start_pos[1]
+
+            # Convert to viewport coordinates
+            self.viewport_x -= delta_x / self.zoom_level
+            self.viewport_y -= delta_y / self.zoom_level
+
+            # Clamp viewport to prevent showing empty space
+            self._clamp_viewport(canvas_rect)
+
+            # Update pan start position
+            self.pan_start_pos = mouse_pos
+
+    def stop_panning(self) -> None:
+        """Stop panning"""
+        self.is_panning = False
+
+    def _clamp_viewport(self, canvas_rect: pygame.Rect) -> None:
+        """Clamp viewport to prevent showing empty space outside the track"""
+        # Calculate the viewport bounds
+        max_viewport_width = TRACK_CANVAS_WIDTH - canvas_rect.width / self.zoom_level
+        max_viewport_height = TRACK_CANVAS_HEIGHT - canvas_rect.height / self.zoom_level
+
+        # Clamp viewport
+        self.viewport_x = max(0, min(self.viewport_x, max_viewport_width))
+        self.viewport_y = max(0, min(self.viewport_y, max_viewport_height))
+
+        # If zoomed out enough to show the entire track, center it
+        if self.zoom_level <= 1.0:
+            self.viewport_x = max(
+                0, (TRACK_CANVAS_WIDTH - canvas_rect.width / self.zoom_level) / 2
+            )
+            self.viewport_y = max(
+                0, (TRACK_CANVAS_HEIGHT - canvas_rect.height / self.zoom_level) / 2
+            )
+
     # Screen Pe draw kar diya
     def draw(
         self, screen: pygame.Surface, position: tuple[int, int] | pygame.Rect
     ) -> None:
-        if not self.IS_MAP:
-            screen.blit(self.AI_SURFACE, position)
+        # Convert position to Rect for consistent handling
+        if isinstance(position, tuple):
+            canvas_rect = pygame.Rect(
+                position[0], position[1], TRACK_CANVAS_WIDTH, TRACK_CANVAS_HEIGHT
+            )
         else:
-            screen.blit(self.FOREGROUND, position)
+            canvas_rect = position
 
+        # Create a subsurface to view the portion of the track we want to display
+        view_width = int(canvas_rect.width / self.zoom_level)
+        view_height = int(canvas_rect.height / self.zoom_level)
+
+        # Ensure view dimensions don't exceed the track size
+        view_width = min(view_width, TRACK_CANVAS_WIDTH)
+        view_height = min(view_height, TRACK_CANVAS_HEIGHT)
+
+        # Create a temp surface for the visible portion
+        view_surface = pygame.Surface((view_width, view_height), pygame.SRCALPHA)
+
+        # Calculate the viewport coordinates
+        viewport_x = int(self.viewport_x)
+        viewport_y = int(self.viewport_y)
+
+        # Clamp to prevent going out of bounds
+        viewport_x = max(0, min(viewport_x, TRACK_CANVAS_WIDTH - view_width))
+        viewport_y = max(0, min(viewport_y, TRACK_CANVAS_HEIGHT - view_height))
+
+        # Get the visible portion
+        view_rect = pygame.Rect(viewport_x, viewport_y, view_width, view_height)
+
+        if not self.IS_MAP:
+            # Copy the visible portion of the AI surface
+            view_surface.blit(self.AI_SURFACE, (0, 0), view_rect)
+        else:
+            # Copy the visible portion of the foreground surface
+            view_surface.blit(self.FOREGROUND, (0, 0), view_rect)
+
+            # Draw overlay if enabled
             if self.SHOW_OVERLAY and self.OVERLAY_SURFACE is not None:
-                screen.blit(self.OVERLAY_SURFACE, position)
+                view_surface.blit(self.OVERLAY_SURFACE, (0, 0), view_rect)
 
+            # Draw grid if enabled
             if self.SHOW_GRID:
-                if isinstance(position, pygame.Rect):
-                    grid_pos = position.topleft
-                else:
-                    grid_pos = position
+                view_surface.blit(self.GRID_SURFACE, (0, 0), view_rect)
 
-                screen.blit(self.GRID_SURFACE, grid_pos)
+        # Scale the view surface to the canvas size
+        scaled_surface = pygame.transform.scale(
+            view_surface, (canvas_rect.width, canvas_rect.height)
+        )
+
+        # Draw the scaled view
+        screen.blit(scaled_surface, canvas_rect.topleft)

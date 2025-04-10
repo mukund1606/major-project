@@ -103,14 +103,16 @@ class MapWindow:
 
         self.GAME_STATE.TRACK.load_track()
         self.GAME_STATE.TRACK.track_name = "Map"
+        self.GAME_STATE.set_state(AvailableSteps.SELECT_GENERATION)
 
-        while not self.EXIT_LOOP:
-            for event in pygame.event.get():
-                # Handle events
-                quit_event(event)
-                self.handle_event(event)
+        # Moving to select generation window directly for now
+        # while not self.EXIT_LOOP:
+        #     for event in pygame.event.get():
+        #         # Handle events
+        #         quit_event(event)
+        #         self.handle_event(event)
 
-            # Update the screen
-            self.draw(self.GAME_STATE.SCREEN)
-            pygame.display.update()
-            self.GAME_STATE.CLOCK.tick(FPS)
+        #     # Update the screen
+        #     self.draw(self.GAME_STATE.SCREEN)
+        #     pygame.display.update()
+        #     self.GAME_STATE.CLOCK.tick(FPS)
