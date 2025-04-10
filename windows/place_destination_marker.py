@@ -96,6 +96,19 @@ class PlaceDestinationMarkerWindow:
         self.placed_marker = self.marker_preview.copy()
         self.placed_marker_rect = self.placed_marker.get_rect()
 
+        # Get track position from the TRACK_CANVAS_RECT
+        track_position = (
+            self.GAME_STATE.TRACK_CANVAS_RECT.x,
+            self.GAME_STATE.TRACK_CANVAS_RECT.y,
+        )
+
+        # Generate the road with adjusted coordinates
+        self.GAME_STATE.TRACK.load_roads_from_points(
+            self.GAME_STATE.CAR_PREVIEW_DATA.position,
+            self.GAME_STATE.FINAL_MARKER_PREVIEW_DATA.position,
+            track_position,
+        )
+
     def draw(self, screen: pygame.Surface) -> None:
         screen.blit(self.BACKGROUND, (0, 0))
         title_surface = self.HEADING_FONT.render(self.TITLE, True, Color.BLACK)
@@ -107,6 +120,7 @@ class PlaceDestinationMarkerWindow:
         instructions = [
             "Left Click to Place Marker. Press Enter for Next Step",
             f"Mouse Wheel to Change Size ({self.GAME_STATE.FINAL_MARKER_PREVIEW_DATA.size})",
+            f"Overlay: {'On' if self.GAME_STATE.TRACK.SHOW_OVERLAY else 'Off'}, Grid: {'On' if self.GAME_STATE.TRACK.SHOW_GRID else 'Off'}",
         ]
         line_spacing = self.FONT.get_linesize()
         start_y = HEIGHT * 0.1
@@ -152,8 +166,10 @@ class PlaceDestinationMarkerWindow:
                 if self.GAME_STATE.FINAL_MARKER_PREVIEW_DATA.position != (0, 0):
                     self.GAME_STATE.set_state(AvailableSteps.START_SIMULATION)
                     self.EXIT_LOOP = True
-                else:
-                    pass
+            if event.key == pygame.K_g:
+                self.GAME_STATE.TRACK.toggle_grid()
+            if event.key == pygame.K_o:
+                self.GAME_STATE.TRACK.toggle_overlay()
 
         if event.type == pygame.MOUSEBUTTONDOWN:
             # Scroll to change marker size
@@ -182,8 +198,12 @@ class PlaceDestinationMarkerWindow:
         self.EXIT_LOOP = False
         self.update_car_size()
 
-        self.GAME_STATE.FINAL_MARKER_PREVIEW_DATA.size = 60
         self.GAME_STATE.FINAL_MARKER_PREVIEW_DATA.position = (0, 0)
+        if self.GAME_STATE.TRACK.IS_MAP:
+            self.GAME_STATE.FINAL_MARKER_PREVIEW_DATA.size = 20
+        else:
+            self.GAME_STATE.FINAL_MARKER_PREVIEW_DATA.size = 60
+
         self.update_marker_size()
 
         while not self.EXIT_LOOP:

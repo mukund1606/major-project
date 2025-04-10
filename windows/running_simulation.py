@@ -61,7 +61,7 @@ class RunningSimulationWindow:
         # --- Create Buttons ---
         button_width = math.floor(WIDTH * 0.1)
         button_height = math.floor(HEIGHT * 0.075)
-        button_font_size = math.floor(button_height * 0.4)
+        button_font_size = math.floor(button_height * 0.35)
 
         radar_button_text = "Hide Radars" if Car.DRAW_SENSORS else "Show Radars"
         self.radar_button = Button(
@@ -84,7 +84,38 @@ class RunningSimulationWindow:
             Color.WHITE,  # Text color
         )
 
-        self.buttons = [self.back_button, self.radar_button]
+        grid_button_text = (
+            "Show Grid" if self.GAME_STATE.TRACK.SHOW_GRID else "Hide Grid"
+        )
+        self.grid_button = Button(
+            WIDTH - button_width - 2,
+            button_height + 4,  # y
+            button_width,
+            button_height,
+            grid_button_text,
+            button_font_size,
+            Color.WHITE,  # Text color
+        )
+
+        overlay_button_text = (
+            "Show Overlay" if self.GAME_STATE.TRACK.SHOW_OVERLAY else "Hide Overlay"
+        )
+        self.overlay_button = Button(
+            WIDTH - (button_width + 2) * 2,
+            button_height + 4,  # y
+            button_width,
+            button_height,
+            overlay_button_text,
+            button_font_size,
+            Color.WHITE,  # Text color
+        )
+
+        self.buttons = [
+            self.back_button,
+            self.radar_button,
+            self.grid_button,
+            self.overlay_button,
+        ]
         # ---------------------
 
     def draw(self, screen: pygame.Surface) -> None:
@@ -231,7 +262,20 @@ class RunningSimulationWindow:
                     self.radar_button.text = (
                         "Hide Radars" if Car.DRAW_SENSORS else "Show Radars"
                     )
-                # Back button is handled in the main run loop
+
+                if self.grid_button.handle_event(event):
+                    self.GAME_STATE.TRACK.toggle_grid()
+                    self.grid_button.text = (
+                        "Show Grid" if self.GAME_STATE.TRACK.SHOW_GRID else "Hide Grid"
+                    )
+
+                if self.overlay_button.handle_event(event):
+                    self.GAME_STATE.TRACK.toggle_overlay()
+                    self.overlay_button.text = (
+                        "Show Overlay"
+                        if self.GAME_STATE.TRACK.SHOW_OVERLAY
+                        else "Hide Overlay"
+                    )
 
             # ---- Simulation Logic ----
             self.car_ai.compute()
@@ -290,6 +334,20 @@ class RunningSimulationWindow:
                 Car.toggle_sensors()
                 self.radar_button.text = (
                     "Hide Radars" if Car.DRAW_SENSORS else "Show Radars"
+                )
+
+            elif self.grid_button.is_hovered:
+                self.GAME_STATE.TRACK.toggle_grid()
+                self.grid_button.text = (
+                    "Show Grid" if self.GAME_STATE.TRACK.SHOW_GRID else "Hide Grid"
+                )
+
+            elif self.overlay_button.is_hovered:
+                self.GAME_STATE.TRACK.toggle_overlay()
+                self.overlay_button.text = (
+                    "Show Overlay"
+                    if self.GAME_STATE.TRACK.SHOW_OVERLAY
+                    else "Hide Overlay"
                 )
 
         if not self.IS_RUNNING:

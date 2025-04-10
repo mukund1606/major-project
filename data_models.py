@@ -45,7 +45,7 @@ class AvailableSteps(Enum):
     DRAW_TRACK = "draw_track"  # Done
 
     SELECT_TRACK = "select_track"  # Done
-    MAP = "map"  # TODO
+    MAP = "map"  # Done
 
     SIMULATE_AI = "simulate_ai"  # Done
 
@@ -53,9 +53,9 @@ class AvailableSteps(Enum):
     # PLACE_CHECKPOINTS = "place_checkpoints"  # TODO (Maybe)
     PLACE_DESTINATION_MARKER = "place_destination_point"  # Done
 
-    SELECT_GENERATION = "select_generation"  # TODO
+    SELECT_GENERATION = "select_generation"  # Done
 
-    START_SIMULATION = "start_simulation"  # Partially Done
+    START_SIMULATION = "start_simulation"  # Done
 
     EXIT = "exit"  # Done
 

@@ -63,8 +63,9 @@ class MapWindow:
         screen.blit(title_surface, title_rect)
 
         instructions = [
-            "Updating Soon...",
-            "Press Enter to Place Car",
+            "Press Enter to Select Generation",
+            f"Press G to Toggle Grid (Currently: {'On' if self.GAME_STATE.TRACK.SHOW_GRID else 'Off'})",
+            f"Press O to Toggle Overlay (Currently: {'On' if self.GAME_STATE.TRACK.SHOW_OVERLAY else 'Off'})",
         ]
         line_spacing = self.FONT.get_linesize()
         start_y = HEIGHT * 0.1
@@ -84,8 +85,12 @@ class MapWindow:
     def handle_event(self, event: pygame.event.Event) -> None:
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_RETURN:
-                self.GAME_STATE.set_state(AvailableSteps.PLACE_CAR)
+                self.GAME_STATE.set_state(AvailableSteps.SELECT_GENERATION)
                 self.EXIT_LOOP = True
+            if event.key == pygame.K_g:
+                self.GAME_STATE.TRACK.toggle_grid()
+            if event.key == pygame.K_o:
+                self.GAME_STATE.TRACK.toggle_overlay()
 
         for button in self.buttons:
             if button.handle_event(event):
@@ -96,9 +101,8 @@ class MapWindow:
     def run(self) -> None:
         self.EXIT_LOOP = False
 
-        # TODO
-        # Load Map Tileset
         self.GAME_STATE.TRACK.load_track()
+        self.GAME_STATE.TRACK.track_name = "Map"
 
         while not self.EXIT_LOOP:
             for event in pygame.event.get():

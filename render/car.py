@@ -25,12 +25,18 @@ class Car:
     CAR_SIZE_Y: float = 24  # 0.6 times the width (40 * 0.6 = 24)
 
     MINIMUM_SPEED: float = 3
+    MAP_MINIMUM_SPEED: float = 1
     MAXIMUM_SPEED: float = 20
+    MAP_MAXIMUM_SPEED: float = 10
     ANGLE_INCREMENT: float = 10
+    MAP_ANGLE_INCREMENT: float = 5
     SPEED_INCREMENT: float = 1
+    MAP_SPEED_INCREMENT: float = 0.5
 
     DEFAULT_SPEED: float = 5
+    MAP_DEFAULT_SPEED: float = 2
     DEFAULT_ANGLE: float = 0
+    MAP_DEFAULT_ANGLE: float = 0
 
     COLLISION_SURFACE_COLOR = Color.WHITE
 
@@ -80,8 +86,13 @@ class Car:
         self._scaled_finish_line_sprite = scaled_finish_line
         self._scaled_dead_sprite = scaled_dead
 
-        self.angle = self.DEFAULT_ANGLE
-        self.speed = self.DEFAULT_SPEED
+        if self.GAME_STATE.TRACK.IS_MAP:
+            self.speed = self.MAP_DEFAULT_SPEED
+            self.angle = self.MAP_DEFAULT_ANGLE
+        else:
+            self.speed = self.DEFAULT_SPEED
+            self.angle = self.DEFAULT_ANGLE
+
         self.current_size = [self.CAR_SIZE_X, self.CAR_SIZE_Y]
 
         # --- Initialization with relative coordinates ---
@@ -131,33 +142,56 @@ class Car:
     def accelerate(self) -> None:
         """Accelerate the car"""
         if not self.reached_finish_line:
-            if (self.speed + Car.SPEED_INCREMENT) <= Car.MAXIMUM_SPEED:
-                self.speed += Car.SPEED_INCREMENT
+            if self.GAME_STATE.TRACK.IS_MAP:
+                if (self.speed + Car.MAP_SPEED_INCREMENT) <= Car.MAP_MAXIMUM_SPEED:
+                    self.speed += Car.MAP_SPEED_INCREMENT
+                else:
+                    self.speed = Car.MAP_MAXIMUM_SPEED
+                    self.speed_penalty += 0.01
             else:
-                self.speed = Car.MAXIMUM_SPEED
-                self.speed_penalty += 0.01
+                if (self.speed + Car.SPEED_INCREMENT) <= Car.MAXIMUM_SPEED:
+                    self.speed += Car.SPEED_INCREMENT
+                else:
+                    self.speed = Car.MAXIMUM_SPEED
+                    self.speed_penalty += 0.01
 
     def brake(self) -> None:
         """Brake the car"""
         if not self.reached_finish_line:
-            if (
-                self.speed - Car.SPEED_INCREMENT >= Car.MINIMUM_SPEED
-            ):  # We don't want to go backwards nor going too slow
-                self.speed -= Car.SPEED_INCREMENT
+            if self.GAME_STATE.TRACK.IS_MAP:
+                if (
+                    self.speed - Car.MAP_SPEED_INCREMENT >= Car.MAP_MINIMUM_SPEED
+                ):  # We don't want to go backwards nor going too slow
+                    self.speed -= Car.MAP_SPEED_INCREMENT
+                else:
+                    self.speed = Car.MAP_MINIMUM_SPEED
+                    # Minimal penalty accumulation
+                    self.speed_penalty += 0.01  # Further reduced from 0.05 to 0.01
             else:
-                self.speed = Car.MINIMUM_SPEED
-                # Minimal penalty accumulation
-                self.speed_penalty += 0.01  # Further reduced from 0.05 to 0.01
+                if (
+                    self.speed - Car.SPEED_INCREMENT >= Car.MINIMUM_SPEED
+                ):  # We don't want to go backwards nor going too slow
+                    self.speed -= Car.SPEED_INCREMENT
+                else:
+                    self.speed = Car.MINIMUM_SPEED
+                    # Minimal penalty accumulation
+                    self.speed_penalty += 0.01  # Further reduced from 0.05 to 0.01
 
     def turn_left(self) -> None:
         """Turn the car to the left"""
         if not self.reached_finish_line:
-            self.angle += Car.ANGLE_INCREMENT
+            if self.GAME_STATE.TRACK.IS_MAP:
+                self.angle += Car.MAP_ANGLE_INCREMENT
+            else:
+                self.angle += Car.ANGLE_INCREMENT
 
     def turn_right(self) -> None:
         """Turn the car to the right"""
         if not self.reached_finish_line:
-            self.angle -= Car.ANGLE_INCREMENT
+            if self.GAME_STATE.TRACK.IS_MAP:
+                self.angle -= Car.MAP_ANGLE_INCREMENT
+            else:
+                self.angle -= Car.ANGLE_INCREMENT
 
     def check_collision(self, track: pygame.Surface) -> bool:
         """Check if the car is colliding with the track (using relative coordinates)
@@ -482,7 +516,13 @@ class Car:
                 screen_end_pos_y = rel_end_pos[1] + self.track_canvas_offset[1]
                 screen_end_position = (screen_end_pos_x, screen_end_pos_y)
 
-                pygame.draw.line(
-                    screen, Color.GREEN, screen_center, screen_end_position, 2
-                )
-                pygame.draw.circle(screen, Color.RED, screen_end_position, 4)
+                if self.GAME_STATE.TRACK.IS_MAP:
+                    pygame.draw.line(
+                        screen, Color.GREEN, screen_center, screen_end_position, 1
+                    )
+                    pygame.draw.circle(screen, Color.RED, screen_end_position, 2)
+                else:
+                    pygame.draw.line(
+                        screen, Color.GREEN, screen_center, screen_end_position, 2
+                    )
+                    pygame.draw.circle(screen, Color.RED, screen_end_position, 4)
