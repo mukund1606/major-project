@@ -15,21 +15,7 @@ class NN:
         self.pos = (int(pos[0] + Node.RADIUS), int(pos[1]))
         input_names = ["-90°", "-45°", "0°", "45°", "90°"]
         output_names = ["Left", "Right", "Accelerate", "Brake"]
-
-        # Check if hidden nodes should be shown based on config
-        show_hidden_nodes = config.genome_config.num_hidden > 0
-
-        # Initialize lists
-        hidden_nodes = []
-        input_keys = list(config.genome_config.input_keys)
-        output_keys = list(config.genome_config.output_keys)
-
-        # Only consider nodes that are neither input nor output nodes if we're showing hidden nodes
-        if show_hidden_nodes:
-            for n in genome.nodes.keys():
-                if n not in input_keys and n not in output_keys:
-                    hidden_nodes.append(n)
-
+        hidden_nodes = [n for n in genome.nodes.keys()]
         node_id_list = []
 
         # nodes
@@ -64,25 +50,20 @@ class NN:
                 i,
             )
             self.nodes.append(n)
+            hidden_nodes.remove(out)
             node_id_list.append(out)
 
-        # Only render hidden nodes if they actually exist
-        if hidden_nodes:
-            h = (
-                (len(hidden_nodes) - 1) * (Node.RADIUS * 2 + Node.SPACING)
-                if len(hidden_nodes) > 1
-                else 0
+        h = (len(hidden_nodes) - 1) * (Node.RADIUS * 2 + Node.SPACING)
+        for i, m in enumerate(hidden_nodes):
+            n = Node(
+                m,
+                self.pos[0] + (Node.LAYER_SPACING + 2 * Node.RADIUS),
+                self.pos[1] + int(-h / 2 + i * (Node.RADIUS * 2 + Node.SPACING)),
+                NodeType.HIDDEN,  # type: ignore
+                [Color.BLUE_PALE, Color.DARK_BLUE, Color.BLUE_PALE, Color.DARK_BLUE],  # type: ignore
             )
-            for i, m in enumerate(hidden_nodes):
-                n = Node(
-                    m,
-                    self.pos[0] + (Node.LAYER_SPACING + 2 * Node.RADIUS),
-                    self.pos[1] + int(-h / 2 + i * (Node.RADIUS * 2 + Node.SPACING)),
-                    NodeType.HIDDEN,  # type: ignore
-                    [Color.BLUE_PALE, Color.DARK_BLUE, Color.BLUE_PALE, Color.DARK_BLUE],  # type: ignore
-                )
-                self.nodes.append(n)
-                node_id_list.append(m)
+            self.nodes.append(n)
+            node_id_list.append(m)
 
         # connections
         self.connections = []
@@ -90,38 +71,44 @@ class NN:
             if c.enabled:
                 input_, output = c.key
 
-                # Only attempt to create connections if both nodes are in our node_id_list
-                if input_ in node_id_list and output in node_id_list:
-                    input_idx = node_id_list.index(input_)
-                    output_idx = node_id_list.index(output)
-
-                    # Check node types
-                    input_type = self.nodes[input_idx].type
-                    output_type = self.nodes[output_idx].type
-
-                    # Create connections based on node types
-                    if (
-                        input_type == NodeType.INPUT and output_type == NodeType.OUTPUT
-                    ) or (
-                        show_hidden_nodes
-                        and (
-                            (
-                                input_type == NodeType.INPUT
-                                and output_type == NodeType.HIDDEN
-                            )
-                            or (
-                                input_type == NodeType.HIDDEN
-                                and output_type == NodeType.OUTPUT
-                            )
+                # Vérifier si le nœud d'entrée est connecté à un neurone caché
+                if (
+                    self.nodes[node_id_list.index(input_)].type == NodeType.INPUT
+                    and self.nodes[node_id_list.index(output)].type == NodeType.HIDDEN
+                ):
+                    self.connections.append(
+                        Connection(
+                            self.nodes[node_id_list.index(input_)],
+                            self.nodes[node_id_list.index(output)],
+                            c.weight,
                         )
-                    ):
-                        self.connections.append(
-                            Connection(
-                                self.nodes[input_idx],
-                                self.nodes[output_idx],
-                                c.weight,
-                            )
+                    )
+
+                # Vérifier si le neurone caché est connecté à un nœud de sortie
+                elif (
+                    self.nodes[node_id_list.index(input_)].type == NodeType.HIDDEN
+                    and self.nodes[node_id_list.index(output)].type == NodeType.OUTPUT
+                ):
+                    self.connections.append(
+                        Connection(
+                            self.nodes[node_id_list.index(input_)],
+                            self.nodes[node_id_list.index(output)],
+                            c.weight,
                         )
+                    )
+
+                # Vérifier si le nœud d'entrée est directement connecté à un nœud de sortie
+                elif (
+                    self.nodes[node_id_list.index(input_)].type == NodeType.INPUT
+                    and self.nodes[node_id_list.index(output)].type == NodeType.OUTPUT
+                ):
+                    self.connections.append(
+                        Connection(
+                            self.nodes[node_id_list.index(input_)],
+                            self.nodes[node_id_list.index(output)],
+                            c.weight,
+                        )
+                    )
 
     def draw(self, screen: pygame.Surface):
         for c in self.connections:
