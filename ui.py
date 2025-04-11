@@ -278,6 +278,7 @@ class SimulationUI:
             x, y = self.best_path.xy
             self.path_ax.plot(x, y, color="red", linewidth=2)
         self.path_ax.set_title("Path Followed")
+        self.path_ax.invert_yaxis()
         self.path_canvas.draw()
 
         # Update fitness progression plot
