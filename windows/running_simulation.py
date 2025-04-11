@@ -19,6 +19,8 @@ from constants import (
     CHECKPOINT_FOLDER,
     CHECKPOINT_INTERVAL,
     MAX_SIMULATIONS,
+    MAX_HISTORY_SIZE,
+    IS_LIVE_DATA,
 )
 
 from data_models import Color
@@ -29,11 +31,18 @@ from render.button import Button
 
 from render.game_state import GameState
 
+from utils import write_data_to_file
+
 
 class RunningSimulationWindow:
     EXIT_LOOP = False
     TITLE = "Simulation"
     IS_RUNNING = False
+    IS_LIVE = IS_LIVE_DATA
+
+    @classmethod
+    def toggle_live_data(cls):
+        cls.IS_LIVE = not cls.IS_LIVE
 
     def __init__(self, game_state: GameState) -> None:
         self.GAME_STATE = game_state
@@ -84,6 +93,17 @@ class RunningSimulationWindow:
             Color.WHITE,  # Text color
         )
 
+        toggle_live_button_text = "Disable Live" if self.IS_LIVE else "Enable Live"
+        self.toggle_live_button = Button(
+            WIDTH - (button_width + 2) * 2,
+            2,  # y
+            button_width,
+            button_height,
+            toggle_live_button_text,
+            button_font_size,
+            Color.WHITE,  # Text color
+        )
+
         grid_button_text = (
             "Show Grid" if self.GAME_STATE.TRACK.SHOW_GRID else "Hide Grid"
         )
@@ -127,6 +147,7 @@ class RunningSimulationWindow:
             self.grid_button,
             self.overlay_button,
             self.zoom_reset_button,
+            self.toggle_live_button,
         ]
         # ---------------------
 
@@ -204,6 +225,10 @@ class RunningSimulationWindow:
 
         for button in self.buttons:
             if self.IS_RUNNING and button.text == "Back":
+                continue
+            if not self.IS_RUNNING and (
+                button.text == "Disable Live" or button.text == "Enable Live"
+            ):
                 continue
             button.draw(screen)
 
@@ -286,9 +311,16 @@ class RunningSimulationWindow:
 
         self.simulation_start_time = time.time()
         self.IS_RUNNING = True
+        LIVE_DATA_FITNESS_HISTORY = []
+        LIVE_DATA_AVG_FITNESS_HISTORY = []
+        LIVE_DATA_CRASH_HISTORY = []
+        LIVE_DATA_FINISH_LINE_HISTORY = []
+
+        CURRENT_FRAME = 0
 
         # Simulation Loop
         while self.IS_RUNNING:
+            CURRENT_FRAME += 1
             # Handle events
             for event in pygame.event.get():
                 quit_event(event)  # Use utility function for quitting
@@ -366,6 +398,12 @@ class RunningSimulationWindow:
                         else "Hide Overlay"
                     )
 
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_l:
+                    self.toggle_live_data()
+                    self.toggle_live_button.text = (
+                        "Disable Live" if self.IS_LIVE else "Enable Live"
+                    )
+
                 # Pass mouse events to buttons for hover effects and clicks
                 if self.radar_button.handle_event(event):
                     Car.toggle_sensors()
@@ -385,6 +423,12 @@ class RunningSimulationWindow:
                         "Show Overlay"
                         if self.GAME_STATE.TRACK.SHOW_OVERLAY
                         else "Hide Overlay"
+                    )
+
+                if self.toggle_live_button.handle_event(event):
+                    self.toggle_live_data()
+                    self.toggle_live_button.text = (
+                        "Disable Live" if self.IS_LIVE else "Enable Live"
                     )
 
                 if self.zoom_reset_button.handle_event(event):
@@ -423,6 +467,58 @@ class RunningSimulationWindow:
                 break  # Exit while loop
             # ---------------------------
 
+            # Every 5 frames, update live data
+            if self.IS_LIVE and CURRENT_FRAME % 5 == 0:
+                GENERATION_FITNESS: list[float] = [genome[1].fitness for genome in genomes]  # type: ignore
+                GENERATION_MAX = max(GENERATION_FITNESS) if GENERATION_FITNESS else 0
+                GENERATION_AVG = (
+                    sum(GENERATION_FITNESS) / len(GENERATION_FITNESS)
+                    if GENERATION_FITNESS
+                    else 0
+                )
+
+                DEAD_CARS = [
+                    car
+                    for car in self.car_ai.cars
+                    if not car.alive and not car.reached_finish_line
+                ]
+                FINISH_LINE_CARS = [
+                    car for car in self.car_ai.cars if car.reached_finish_line
+                ]
+                DEAD_CARS_COUNT = len(DEAD_CARS)
+                FINISH_LINE_CARS_COUNT = len(FINISH_LINE_CARS)
+
+                LIVE_DATA_FITNESS_HISTORY.append(GENERATION_MAX)
+                LIVE_DATA_AVG_FITNESS_HISTORY.append(GENERATION_AVG)
+                LIVE_DATA_CRASH_HISTORY.append(DEAD_CARS_COUNT)
+                LIVE_DATA_FINISH_LINE_HISTORY.append(FINISH_LINE_CARS_COUNT)
+
+                for history in [
+                    LIVE_DATA_FITNESS_HISTORY,
+                    LIVE_DATA_AVG_FITNESS_HISTORY,
+                    LIVE_DATA_CRASH_HISTORY,
+                    LIVE_DATA_FINISH_LINE_HISTORY,
+                ]:
+                    if len(history) > MAX_HISTORY_SIZE:
+                        del history[0]
+
+                data = {
+                    "generation": self.GAME_STATE.CURRENT_GENERATION,
+                    "fitness_history": LIVE_DATA_FITNESS_HISTORY,
+                    "avg_fitness_history": LIVE_DATA_AVG_FITNESS_HISTORY,
+                    "crash_history": LIVE_DATA_CRASH_HISTORY,
+                    "finish_line_history": LIVE_DATA_FINISH_LINE_HISTORY,
+                    "detailed_path_data": [
+                        {"path": car.path_history, "fitness": genomes[i][1].fitness}
+                        for i, car in enumerate(self.car_ai.cars)
+                    ],
+                    "sensor_data": [car.get_data() for car in self.car_ai.cars],
+                    "velocities": [car.speed for car in self.car_ai.cars],
+                    "headings": [car.angle for car in self.car_ai.cars],
+                }
+
+                write_data_to_file(data, True)
+
             # ---- Drawing ----
             self.draw(self.GAME_STATE.SCREEN)
             pygame.display.update()
@@ -432,6 +528,54 @@ class RunningSimulationWindow:
         # Compute final rewards for the generation after the loop ends
         self.car_ai.compute_reward(self.GAME_STATE.TRACK.get_ai_track())
         self.GAME_STATE.BEST_FITNESS = self.car_ai.BEST_FITNESS
+
+        GENERATION_FITNESS: list[float] = [genome[1].fitness for genome in genomes]  # type: ignore
+        GENERATION_MAX = max(GENERATION_FITNESS) if GENERATION_FITNESS else 0
+        GENERATION_AVG = (
+            sum(GENERATION_FITNESS) / len(GENERATION_FITNESS)
+            if GENERATION_FITNESS
+            else 0
+        )
+
+        DEAD_CARS = [
+            car
+            for car in self.car_ai.cars
+            if not car.alive and not car.reached_finish_line
+        ]
+        FINISH_LINE_CARS = [car for car in self.car_ai.cars if car.reached_finish_line]
+        DEAD_CARS_COUNT = len(DEAD_CARS)
+        FINISH_LINE_CARS_COUNT = len(FINISH_LINE_CARS)
+
+        self.FITNESS_HISTORY.append(GENERATION_MAX)
+        self.AVG_FITNESS_HISTORY.append(GENERATION_AVG)
+        self.CRASH_HISTORY.append(DEAD_CARS_COUNT)
+        self.FINISH_LINE_HISTORY.append(FINISH_LINE_CARS_COUNT)
+
+        for history in [
+            self.FITNESS_HISTORY,
+            self.AVG_FITNESS_HISTORY,
+            self.CRASH_HISTORY,
+            self.FINISH_LINE_HISTORY,
+        ]:
+            if len(history) > MAX_HISTORY_SIZE:
+                del history[0]
+
+        data = {
+            "generation": self.GAME_STATE.CURRENT_GENERATION,
+            "fitness_history": self.FITNESS_HISTORY,
+            "avg_fitness_history": self.AVG_FITNESS_HISTORY,
+            "crash_history": self.CRASH_HISTORY,
+            "finish_line_history": self.FINISH_LINE_HISTORY,
+            "detailed_path_data": [
+                {"path": car.path_history, "fitness": genomes[i][1].fitness}
+                for i, car in enumerate(self.car_ai.cars)
+            ],
+            "sensor_data": [car.get_data() for car in self.car_ai.cars],
+            "velocities": [car.speed for car in self.car_ai.cars],
+            "headings": [car.angle for car in self.car_ai.cars],
+        }
+
+        write_data_to_file(data, False)
 
         # Reset relevant states for the next generation or exit
         self.IS_RUNNING = False
@@ -497,6 +641,12 @@ class RunningSimulationWindow:
                 else "Hide Overlay"
             )
 
+        if event.type == pygame.KEYDOWN and event.key == pygame.K_l:
+            self.toggle_live_data()
+            self.toggle_live_button.text = (
+                "Disable Live" if self.IS_LIVE else "Enable Live"
+            )
+
         # Handle events *before* simulation starts (Enter key)
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_RETURN and not self.IS_RUNNING:
@@ -507,6 +657,7 @@ class RunningSimulationWindow:
         self.grid_button.handle_event(event)
         self.overlay_button.handle_event(event)
         self.zoom_reset_button.handle_event(event)
+        self.toggle_live_button.handle_event(event)
 
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             if self.radar_button.is_hovered:
@@ -529,6 +680,12 @@ class RunningSimulationWindow:
                     else "Hide Overlay"
                 )
 
+            elif self.toggle_live_button.is_hovered:
+                self.toggle_live_data()
+                self.toggle_live_button.text = (
+                    "Disable Live" if self.IS_LIVE else "Enable Live"
+                )
+
             elif self.zoom_reset_button.is_hovered:
                 # Reset zoom and viewport
                 self.GAME_STATE.TRACK.zoom_level = 1.0
@@ -545,6 +702,11 @@ class RunningSimulationWindow:
                     self.EXIT_LOOP = True
 
     def run(self) -> None:
+        self.FITNESS_HISTORY = []
+        self.AVG_FITNESS_HISTORY = []
+        self.CRASH_HISTORY = []
+        self.FINISH_LINE_HISTORY = []
+
         self.EXIT_LOOP = False
         self.IS_RUNNING = False  # Ensure simulation is not running initially
 

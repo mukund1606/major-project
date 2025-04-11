@@ -3,6 +3,7 @@ import os
 
 NEAT_CONFIG_PATH = "neat-config.ini"
 DEBUG = True
+IS_LIVE_DATA = False
 MAX_SIMULATIONS = 1000
 
 WIDTH = 1800
@@ -45,6 +46,9 @@ CHECKPOINT_INTERVAL = 1
 CHECKPOINT_MAX_HISTORY = 100
 
 DATA_FILE = "simulation_data.json"
+LIVE_DATA_FILE = "live_simulation_data.json"
+
+MAX_HISTORY_SIZE = 100
 
 for folder in [
     BACKGROUND_FOLDER,

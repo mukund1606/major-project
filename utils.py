@@ -5,6 +5,10 @@ from PIL import Image
 import pygame
 from skimage.morphology import skeletonize
 import sys
+import os
+import json
+
+from constants import DATA_FILE, LIVE_DATA_FILE
 
 
 def quit_event(event: pygame.event.Event) -> None:
@@ -45,3 +49,23 @@ def load_csv(path: str) -> list[list[int]]:
         for row in reader:
             data.append([int(cell) for cell in row])
     return data
+
+
+def write_data_to_file(data, is_live_data: bool = False):
+    try:
+        if is_live_data:
+            file_path = LIVE_DATA_FILE
+        else:
+            file_path = DATA_FILE
+        # Create a temporary file first
+        temp_file = file_path + ".tmp"
+        with open(temp_file, "w") as f:
+            json.dump(data, f)
+
+        # If successful, rename to the actual file
+        if os.path.exists(temp_file):
+            if os.path.exists(file_path):
+                os.remove(file_path)
+            os.rename(temp_file, file_path)
+    except Exception as e:
+        print(f"Error writing data to file: {e}")
