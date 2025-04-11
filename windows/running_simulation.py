@@ -21,6 +21,7 @@ from constants import (
     MAX_SIMULATIONS,
     MAX_HISTORY_SIZE,
     IS_LIVE_DATA,
+    MAX_LIVE_HISTORY_SIZE,
 )
 
 from data_models import Color
@@ -32,6 +33,11 @@ from render.button import Button
 from render.game_state import GameState
 
 from utils import write_data_to_file
+
+LIVE_DATA_FITNESS_HISTORY = []
+LIVE_DATA_AVG_FITNESS_HISTORY = []
+LIVE_DATA_CRASH_HISTORY = []
+LIVE_DATA_FINISH_LINE_HISTORY = []
 
 
 class RunningSimulationWindow:
@@ -467,8 +473,8 @@ class RunningSimulationWindow:
                 break  # Exit while loop
             # ---------------------------
 
-            # Every 5 frames, update live data
-            if self.IS_LIVE and CURRENT_FRAME % 5 == 0:
+            # Update live data every 1 second
+            if self.IS_LIVE and CURRENT_FRAME % FPS == 0:
                 GENERATION_FITNESS: list[float] = [genome[1].fitness for genome in genomes]  # type: ignore
                 GENERATION_MAX = max(GENERATION_FITNESS) if GENERATION_FITNESS else 0
                 GENERATION_AVG = (
@@ -477,16 +483,14 @@ class RunningSimulationWindow:
                     else 0
                 )
 
-                DEAD_CARS = [
-                    car
+                DEAD_CARS_COUNT = sum(
+                    1
                     for car in self.car_ai.cars
                     if not car.alive and not car.reached_finish_line
-                ]
-                FINISH_LINE_CARS = [
-                    car for car in self.car_ai.cars if car.reached_finish_line
-                ]
-                DEAD_CARS_COUNT = len(DEAD_CARS)
-                FINISH_LINE_CARS_COUNT = len(FINISH_LINE_CARS)
+                )
+                FINISH_LINE_CARS_COUNT = sum(
+                    1 for car in self.car_ai.cars if car.reached_finish_line
+                )
 
                 LIVE_DATA_FITNESS_HISTORY.append(GENERATION_MAX)
                 LIVE_DATA_AVG_FITNESS_HISTORY.append(GENERATION_AVG)
@@ -499,7 +503,7 @@ class RunningSimulationWindow:
                     LIVE_DATA_CRASH_HISTORY,
                     LIVE_DATA_FINISH_LINE_HISTORY,
                 ]:
-                    if len(history) > MAX_HISTORY_SIZE:
+                    if len(history) > MAX_LIVE_HISTORY_SIZE:
                         del history[0]
 
                 data = {
@@ -537,14 +541,14 @@ class RunningSimulationWindow:
             else 0
         )
 
-        DEAD_CARS = [
-            car
+        DEAD_CARS_COUNT = sum(
+            1
             for car in self.car_ai.cars
             if not car.alive and not car.reached_finish_line
-        ]
-        FINISH_LINE_CARS = [car for car in self.car_ai.cars if car.reached_finish_line]
-        DEAD_CARS_COUNT = len(DEAD_CARS)
-        FINISH_LINE_CARS_COUNT = len(FINISH_LINE_CARS)
+        )
+        FINISH_LINE_CARS_COUNT = sum(
+            1 for car in self.car_ai.cars if car.reached_finish_line
+        )
 
         self.FITNESS_HISTORY.append(GENERATION_MAX)
         self.AVG_FITNESS_HISTORY.append(GENERATION_AVG)

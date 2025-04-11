@@ -49,6 +49,7 @@ DATA_FILE = "simulation_data.json"
 LIVE_DATA_FILE = "live_simulation_data.json"
 
 MAX_HISTORY_SIZE = 100
+MAX_LIVE_HISTORY_SIZE = 30
 
 for folder in [
     BACKGROUND_FOLDER,
