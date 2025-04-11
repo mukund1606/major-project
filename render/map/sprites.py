@@ -40,11 +40,32 @@ class Block(pygame.sprite.Sprite):
             self.height = 4 * TILE_SIZE
             self.image = building_spritesheet.get_sprite(0, 11, self.width, self.height)
 
+        elif tile_type == "<":
+            self.width = 4 * TILE_SIZE
+            self.height = TILE_SIZE
+            self.image = building_spritesheet.get_sprite(
+                806, 351, self.width, self.height
+            )
+
+        elif tile_type == ">":
+            self.width = 4 * TILE_SIZE
+            self.height = TILE_SIZE
+            self.image = building_spritesheet.get_sprite(
+                806, 433, self.width, self.height
+            )
+
         elif tile_type == "p":
             self.width = 10 * TILE_SIZE
             self.height = 2 * TILE_SIZE
             self.image = building_spritesheet.get_sprite(
                 1, 351, self.width, self.height
+            )
+
+        elif tile_type == "!":
+            self.width = TILE_SIZE
+            self.height = 2 * TILE_SIZE
+            self.image = building_spritesheet.get_sprite(
+                1045, 520, self.width, self.height
             )
 
         elif tile_type == "t":
@@ -54,6 +75,20 @@ class Block(pygame.sprite.Sprite):
                 1, 522, self.width, self.height
             )
 
+        elif tile_type == "$":
+            self.width = 4 * TILE_SIZE
+            self.height = TILE_SIZE
+            self.image = building_spritesheet.get_sprite(
+                1, 1502, self.width, self.height
+            )
+
+        elif tile_type == "@":
+            self.width = 4 * TILE_SIZE
+            self.height = TILE_SIZE
+            self.image = building_spritesheet.get_sprite(
+                328, 1502, self.width, self.height
+            )
+
         elif tile_type == "m":
             self.width = 8 * TILE_SIZE
             self.height = 4 * TILE_SIZE
@@ -61,11 +96,32 @@ class Block(pygame.sprite.Sprite):
                 593, 5, self.width, self.height
             )
 
+        elif tile_type == "W":
+            self.width = 8 * TILE_SIZE
+            self.height = 4 * TILE_SIZE
+            self.image = building_spritesheet.get_sprite(
+                2, 1684, self.width, self.height
+            )
+
+        elif tile_type == "Z":
+            self.width = 8 * TILE_SIZE
+            self.height = 4 * TILE_SIZE
+            self.image = building_spritesheet.get_sprite(
+                653, 851, self.width, self.height
+            )
+
         elif tile_type == "n":
             self.width = 3 * TILE_SIZE
             self.height = 2 * TILE_SIZE
             self.image = building_spritesheet.get_sprite(
                 1497, 3, self.width, self.height
+            )
+
+        elif tile_type == "I":
+            self.width = TILE_SIZE
+            self.height = TILE_SIZE
+            self.image = building_spritesheet.get_sprite(
+                648, 1178, self.width, self.height
             )
 
         elif tile_type == "q":
@@ -203,100 +259,110 @@ class Road(pygame.sprite.Sprite):
         self.visible = True  # Normal roads are visible
         self.is_underground = tile_type == "U"
 
-        if tile_type == "1":  # 80 * 160
+        if tile_type == "1":
             self.width = TILE_SIZE
             self.height = 2 * TILE_SIZE
             self.image = road_spritesheet.get_sprite(0, 0, self.width, self.height)
 
-        elif tile_type == "z":  # 80 * 160
+        elif tile_type == "z":
             self.width = TILE_SIZE
             self.height = 2 * TILE_SIZE
             self.image = road_spritesheet.get_sprite(80, 0, self.width, self.height)
 
-        elif tile_type == "a":  # 80 * 160
+        elif tile_type == "a":
             self.width = TILE_SIZE
             self.height = 2 * TILE_SIZE
             self.image = road_spritesheet.get_sprite(342, 176, self.width, self.height)
 
-        elif tile_type == "2":  # 160 * 80
+        elif tile_type == "2":
             self.width = 2 * TILE_SIZE
             self.height = TILE_SIZE
             self.image = road_spritesheet.get_sprite(0, 166, self.width, self.height)
 
-        elif tile_type == "x":  # 160 * 80
+        elif tile_type == "x":
             self.width = 2 * TILE_SIZE
             self.height = TILE_SIZE
             self.image = road_spritesheet.get_sprite(0, 244, self.width, self.height)
 
-        elif tile_type == "b":  # 160 * 80
+        elif tile_type == "b":
             self.width = 2 * TILE_SIZE
             self.height = TILE_SIZE
             self.image = road_spritesheet.get_sprite(439, 176, self.width, self.height)
 
-        elif tile_type == "C":  # 160 * 160
+        elif tile_type == "C":
             self.width = 2 * TILE_SIZE
             self.height = 2 * TILE_SIZE
             self.image = road_spritesheet.get_sprite(169, 179, self.width, self.height)
 
-        elif tile_type == "3":  # 160 * 240
+        elif tile_type == "3":
             self.width = 2 * TILE_SIZE
             self.height = 3 * TILE_SIZE
             self.image = road_spritesheet.get_sprite(3, 338, self.width, self.height)
 
-        elif tile_type == "y":  # 160 * 240
+        elif tile_type == "y":
             self.width = 2 * TILE_SIZE
             self.height = 3 * TILE_SIZE
             self.image = road_spritesheet.get_sprite(171, 342, self.width, self.height)
 
-        elif tile_type == "c":  # 160 * 80
+        elif tile_type == "c":
             self.width = 2 * TILE_SIZE
             self.height = TILE_SIZE
             self.image = road_spritesheet.get_sprite(337, 343, self.width, self.height)
 
-        elif tile_type == "w":  # 320 * 80
+        elif tile_type == "w":
             self.width = 4 * TILE_SIZE
             self.height = TILE_SIZE
             self.image = road_spritesheet.get_sprite(338, 431, self.width, self.height)
 
-        elif tile_type == "4":  # 240 * 160
+        elif tile_type == "4":
             self.width = 3 * TILE_SIZE
             self.height = 2 * TILE_SIZE
             self.image = road_spritesheet.get_sprite(0, 586, self.width, self.height)
 
-        elif tile_type == "d":  # 240 * 160
+        elif tile_type == "d":
             self.width = 3 * TILE_SIZE
             self.height = 2 * TILE_SIZE
             self.image = road_spritesheet.get_sprite(247, 585, self.width, self.height)
 
-        elif tile_type == "v":  # 80 * 160
+        elif tile_type == "v":
             self.width = TILE_SIZE
             self.height = 2 * TILE_SIZE
             self.image = road_spritesheet.get_sprite(493, 513, self.width, self.height)
 
-        elif tile_type == "e":  # 80 * 320
+        elif tile_type == "e":
             self.width = TILE_SIZE
             self.height = 4 * TILE_SIZE
             self.image = road_spritesheet.get_sprite(671, 430, self.width, self.height)
 
-        elif tile_type == "L":  # 640 * 160
+        elif tile_type == "L":
             self.width = 8 * TILE_SIZE
             self.height = 2 * TILE_SIZE
             self.image = road_spritesheet.get_sprite(167, 1, self.width, self.height)
 
-        elif tile_type == "H":  # 800 * 320
+        elif tile_type == "H":
             self.width = 10 * TILE_SIZE
             self.height = 4 * TILE_SIZE
             self.image = road_spritesheet.get_sprite(5, 757, self.width, self.height)
 
-        elif tile_type == "E":  # 560 * 560
+        elif tile_type == "E":
             self.width = 7 * TILE_SIZE
             self.height = 7 * TILE_SIZE
             self.image = road_spritesheet.get_sprite(858, 20, self.width, self.height)
 
-        elif tile_type == "O":  # 320 * 160
+        elif tile_type == "O":
             self.width = 4 * TILE_SIZE
-            self.height = 2 * TILE_SIZE
+            self.height = 4 * TILE_SIZE
             self.image = road_spritesheet.get_sprite(817, 603, self.width, self.height)
+
+        elif tile_type == "f":
+            self.width = 2 * TILE_SIZE
+            self.height = 2 * TILE_SIZE
+            self.image = road_spritesheet.get_sprite(1, 1094, self.width, self.height)
+
+        elif tile_type == "+":
+            self.width = TILE_SIZE
+            self.height = TILE_SIZE
+            self.image = road_spritesheet.get_sprite(1, 1094, self.width, self.height)
 
         self.rect = self.image.get_rect()
         self.rect.x = self.x

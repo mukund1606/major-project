@@ -21,7 +21,7 @@ class MapGenerator:
 
         for i, row in enumerate(TILEMAP):
             for j, column in enumerate(row):
-                if column in "BFhpmtlgTMQ*nqrsRA/|#":
+                if column in "BFh<>p!mZt$@lgTMQ*WnIqrsRA/|#":
                     block = Block(
                         j,
                         i,
@@ -33,7 +33,7 @@ class MapGenerator:
                 elif column == "G":
                     tree = Tree(j, i, self.boundary_spritesheet)
                     map_surface.blit(tree.image, (tree.rect.x, tree.rect.y))
-                elif column in "1za2xbC3ycw4dveLHEO":
+                elif column in "1za2xbC3ycw4dveLHEOf+z":
                     road = Road(j, i, column, self.road_spritesheet)
                     map_surface.blit(road.image, (road.rect.x, road.rect.y))
 
