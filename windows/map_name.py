@@ -138,10 +138,6 @@ class MapNameWindow:
             ):
                 self.INPUT_TEXT_ERROR = "Map does not exist"
                 return False
-        else:
-            if os.path.exists(os.path.join(CHECKPOINT_FOLDER, f"{self.INPUT_TEXT}")):
-                self.INPUT_TEXT_ERROR = "Map name already exists"
-                return False
         return True
 
     def run(self) -> None:
