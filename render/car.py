@@ -4,7 +4,13 @@ import os
 
 
 from data_models import Color
-from constants import WIDTH, CARS_FOLDER
+from constants import (
+    WIDTH,
+    CARS_FOLDER,
+    DEFAULT_CAR_SIZE_X,
+    DEFAULT_CAR_SIZE_Y,
+    CAR_SIZE_RATIO,
+)
 
 from render.game_state import GameState
 
@@ -21,8 +27,8 @@ class Car:
     DEAD_CAR_SPRITE_PATH = os.path.join(CARS_FOLDER, "dead_car.png")
     FINISH_LINE_CAR_SPRITE_PATH = os.path.join(CARS_FOLDER, "finish_line_car.png")
 
-    CAR_SIZE_X: float = 40
-    CAR_SIZE_Y: float = 24  # 0.6 times the width (40 * 0.6 = 24)
+    CAR_SIZE_X: float = DEFAULT_CAR_SIZE_X
+    CAR_SIZE_Y: float = DEFAULT_CAR_SIZE_Y
 
     MINIMUM_SPEED: float = 3
     MAP_MINIMUM_SPEED: float = 1
@@ -65,7 +71,7 @@ class Car:
 
         # Modify size based on preview data
         self.CAR_SIZE_X = size
-        self.CAR_SIZE_Y = size * 0.6  # Maintain 0.6 aspect ratio
+        self.CAR_SIZE_Y = size * CAR_SIZE_RATIO  # Maintain aspect ratio
 
         # Modify angle based on preview data - save rotation from car placement
         self.DEFAULT_ANGLE = rotation

@@ -26,6 +26,7 @@ class Track:
     FINAL_LINE_POSITION: tuple[float, float, float] = (0, 0, 0)
     SHOW_GRID = True
     SHOW_OVERLAY = True
+    SHOW_AI_LAYER = False
 
     # Zoom and pan properties
     MIN_ZOOM = 1
@@ -41,6 +42,11 @@ class Track:
     def toggle_overlay(cls):
         """Toggle the visibility of the overlay"""
         cls.SHOW_OVERLAY = not cls.SHOW_OVERLAY
+
+    @classmethod
+    def toggle_ai_layer(cls):
+        """Toggle the visibility of the AI layer"""
+        cls.SHOW_AI_LAYER = not cls.SHOW_AI_LAYER
 
     def __init__(self, track_name: str) -> None:
         self.track_name = track_name
@@ -767,8 +773,13 @@ class Track:
             # Copy the visible portion of the AI surface
             view_surface.blit(self.AI_SURFACE, (0, 0), view_rect)
         else:
-            # Copy the visible portion of the foreground surface
-            view_surface.blit(self.FOREGROUND, (0, 0), view_rect)
+            if self.SHOW_AI_LAYER:
+                # Copy the visible portion of the AI surface
+                view_surface.blit(self.AI_SURFACE, (0, 0), view_rect)
+
+            else:
+                # Copy the visible portion of the foreground surface
+                view_surface.blit(self.FOREGROUND, (0, 0), view_rect)
 
             # Draw overlay if enabled
             if self.SHOW_OVERLAY and self.OVERLAY_SURFACE is not None:

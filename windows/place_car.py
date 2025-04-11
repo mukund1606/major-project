@@ -10,6 +10,7 @@ from constants import (
     TRACK_CANVAS_WIDTH,
     TRACK_CANVAS_HEIGHT,
     CARS_FOLDER,
+    CAR_SIZE_RATIO,
 )
 from data_models import AvailableSteps, Color
 from render.button import Button
@@ -67,9 +68,9 @@ class PlaceCarWindow:
 
     def update_car_size(self) -> None:
         car_size = self.GAME_STATE.CAR_PREVIEW_DATA.size
-        # Scale the original car image to current size with 0.6 aspect ratio
+        # Scale the original car image to current size with aspect ratio
         scaled_car = pygame.transform.scale(
-            self.CAR_IMG, (car_size, int(car_size * 0.6))
+            self.CAR_IMG, (car_size, int(car_size * CAR_SIZE_RATIO))
         )
         # Create rotated version
         self.car_preview = pygame.transform.rotate(

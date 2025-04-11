@@ -136,9 +136,22 @@ class RunningSimulationWindow:
             Color.WHITE,  # Text color
         )
 
+        ai_layer_button_text = (
+            "Show AI View" if self.GAME_STATE.TRACK.SHOW_AI_LAYER else "Hide AI View"
+        )
+        self.ai_layer_button = Button(
+            WIDTH - button_width - 2,
+            (button_height + 4) * 2,  # y
+            button_width,
+            button_height,
+            ai_layer_button_text,
+            button_font_size,
+            Color.WHITE,  # Text color
+        )
+
         # Add zoom reset button
         self.zoom_reset_button = Button(
-            WIDTH - button_width - 2,
+            WIDTH - (button_width + 2) * 2,
             (button_height + 4) * 2,  # y
             button_width,
             button_height,
@@ -154,6 +167,7 @@ class RunningSimulationWindow:
             self.overlay_button,
             self.zoom_reset_button,
             self.toggle_live_button,
+            self.ai_layer_button,
         ]
         # ---------------------
 
@@ -170,13 +184,13 @@ class RunningSimulationWindow:
             self.instructions = [
                 f"Generation: {self.GAME_STATE.CURRENT_GENERATION}, Alive: {self.GAME_STATE.ALIVE_CARS}, Best Fitness: {self.GAME_STATE.BEST_FITNESS:.2f}, Time Left: {CarAI.TIME_LIMIT - (time.time() - self.simulation_start_time):.2f}s.",
                 f"Zoom: {self.GAME_STATE.TRACK.zoom_level:.1f}x (CTRL+Wheel to zoom, CTRL+Drag to pan, CTRL+R to reset view)",
-                f"R: Toggle Radars, G: Toggle Grid, O: Toggle Overlay",
+                f"R: Toggle Radars, G: Toggle Grid, O: Toggle Overlay, A: Toggle AI View, L: Store Live Data",
             ]
         else:
             self.instructions = [
                 "Press Enter to Start Simulation, Use Back button to return to previous step.",
                 f"Zoom: {self.GAME_STATE.TRACK.zoom_level:.1f}x (CTRL+Wheel to zoom, CTRL+Drag to pan, CTRL+R to reset view)",
-                f"R: Toggle Radars, G: Toggle Grid, O: Toggle Overlay",
+                f"R: Toggle Radars, G: Toggle Grid, O: Toggle Overlay, A: Toggle AI View, L: Store Live Data",
             ]
 
         line_spacing = self.FONT.get_linesize()
@@ -410,6 +424,14 @@ class RunningSimulationWindow:
                         "Disable Live" if self.IS_LIVE else "Enable Live"
                     )
 
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_a:
+                    self.GAME_STATE.TRACK.toggle_ai_layer()
+                    self.ai_layer_button.text = (
+                        "Show AI View"
+                        if self.GAME_STATE.TRACK.SHOW_AI_LAYER
+                        else "Hide AI View"
+                    )
+
                 # Pass mouse events to buttons for hover effects and clicks
                 if self.radar_button.handle_event(event):
                     Car.toggle_sensors()
@@ -435,6 +457,14 @@ class RunningSimulationWindow:
                     self.toggle_live_data()
                     self.toggle_live_button.text = (
                         "Disable Live" if self.IS_LIVE else "Enable Live"
+                    )
+
+                if self.ai_layer_button.handle_event(event):
+                    self.GAME_STATE.TRACK.toggle_ai_layer()
+                    self.ai_layer_button.text = (
+                        "Show AI View"
+                        if self.GAME_STATE.TRACK.SHOW_AI_LAYER
+                        else "Hide AI View"
                     )
 
                 if self.zoom_reset_button.handle_event(event):
@@ -651,6 +681,14 @@ class RunningSimulationWindow:
                 "Disable Live" if self.IS_LIVE else "Enable Live"
             )
 
+        if event.type == pygame.KEYDOWN and event.key == pygame.K_a:
+            self.GAME_STATE.TRACK.toggle_ai_layer()
+            self.ai_layer_button.text = (
+                "Show AI View"
+                if self.GAME_STATE.TRACK.SHOW_AI_LAYER
+                else "Hide AI View"
+            )
+
         # Handle events *before* simulation starts (Enter key)
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_RETURN and not self.IS_RUNNING:
@@ -662,6 +700,7 @@ class RunningSimulationWindow:
         self.overlay_button.handle_event(event)
         self.zoom_reset_button.handle_event(event)
         self.toggle_live_button.handle_event(event)
+        self.ai_layer_button.handle_event(event)
 
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             if self.radar_button.is_hovered:
@@ -688,6 +727,14 @@ class RunningSimulationWindow:
                 self.toggle_live_data()
                 self.toggle_live_button.text = (
                     "Disable Live" if self.IS_LIVE else "Enable Live"
+                )
+
+            elif self.ai_layer_button.is_hovered:
+                self.GAME_STATE.TRACK.toggle_ai_layer()
+                self.ai_layer_button.text = (
+                    "Show AI View"
+                    if self.GAME_STATE.TRACK.SHOW_AI_LAYER
+                    else "Hide AI View"
                 )
 
             elif self.zoom_reset_button.is_hovered:
