@@ -45,6 +45,7 @@ class AvailableSteps(Enum):
     DRAW_TRACK = "draw_track"  # Done
 
     SELECT_TRACK = "select_track"  # Done
+    ENTER_MAP_NAME = "enter_map_name"  # Done
     MAP = "map"  # Done
 
     SIMULATE_AI = "simulate_ai"  # Done

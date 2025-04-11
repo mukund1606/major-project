@@ -71,7 +71,7 @@ class SimulateAIWindow:
                     self.GAME_STATE.set_state(AvailableSteps.SELECT_TRACK)
                     self.EXIT_LOOP = True
                 elif button.text == "Map":
-                    self.GAME_STATE.set_state(AvailableSteps.MAP)
+                    self.GAME_STATE.set_state(AvailableSteps.ENTER_MAP_NAME)
                     self.EXIT_LOOP = True
                 elif button.text == "Back":
                     self.GAME_STATE.set_previous_state()

@@ -132,8 +132,8 @@ class Car:
         self.track = game_state.TRACK
 
         self.DISTANCE_NORMALIZER = (
-            self.track.TRACK_LENGTH / 2
-        )  # Expect to cover at least half the track
+            self.track.TRACK_LENGTH
+        )  # Expect to cover the entire track
         self.MAX_EXPECTED_SPEED = (
             self.track.TRACK_LENGTH / 100
         )  # Reasonable speed expectation

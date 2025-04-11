@@ -28,6 +28,7 @@ class GameState:
     BEST_FITNESS: float = 0.0
     ALIVE_CARS: int = 0
     INPUT_TEXT: str = ""
+    INPUT_MAP_TEXT: str = ""
     BEST_VISUAL_NN: NN | None = None
     CHECKPOINT_POPULATION: neat.Population | None = None
 

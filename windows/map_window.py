@@ -102,7 +102,7 @@ class MapWindow:
         self.EXIT_LOOP = False
 
         self.GAME_STATE.TRACK.load_track()
-        self.GAME_STATE.TRACK.track_name = "Map"
+        self.GAME_STATE.TRACK.track_name = self.GAME_STATE.INPUT_MAP_TEXT
         self.GAME_STATE.set_state(AvailableSteps.SELECT_GENERATION)
 
         # Moving to select generation window directly for now

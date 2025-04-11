@@ -2,26 +2,33 @@ import math
 import os
 import pygame
 
-from constants import WIDTH, HEIGHT, FPS, DEFAULT_FONT, TRACKS_FOLDER
+from constants import WIDTH, HEIGHT, FPS, DEFAULT_FONT, CHECKPOINT_FOLDER
 from data_models import AvailableSteps, Color
 from utils import quit_event
 
 from render.game_state import GameState
 
 from windows.train_ai import TrainAIWindow
+from windows.simulate_ai import SimulateAIWindow
 
 
-class TrackNameWindow:
+class MapNameWindow:
     EXIT_LOOP = False
-    TITLE = "Enter Track Name"
+    TITLE = "Enter Map Name"
     INPUT_TEXT = ""
     INPUT_TEXT_ERROR = ""
     RECTANGLE_WIDTH = math.floor(WIDTH * 0.4)
     RECTANGLE_HEIGHT = math.floor(HEIGHT * 0.4)
 
-    def __init__(self, game_state: GameState, train_ai_window: TrainAIWindow) -> None:
+    def __init__(
+        self,
+        game_state: GameState,
+        train_ai_window: TrainAIWindow,
+        simulate_ai_window: SimulateAIWindow,
+    ) -> None:
         self.GAME_STATE = game_state
         self.train_ai_window = train_ai_window
+        self.simulate_ai_window = simulate_ai_window
 
         # Create semi-transparent overlay
         self.OVERLAY = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
@@ -32,7 +39,10 @@ class TrackNameWindow:
 
     def draw(self, screen: pygame.Surface) -> None:
         # Draw the train AI window as background
-        self.train_ai_window.draw(screen)
+        if self.GAME_STATE.IS_TRAINING_MODE:
+            self.train_ai_window.draw(screen)
+        else:
+            self.simulate_ai_window.draw(screen)
 
         # Draw our semi-transparent overlay
         screen.blit(self.OVERLAY, (0, 0))
@@ -57,16 +67,16 @@ class TrackNameWindow:
         title_rect = title_surface.get_rect(center=(TITLE_X, TITLE_Y))
         screen.blit(title_surface, title_rect)
 
-        # Track Name Input
-        track_name_input_surface = self.HEADING_FONT.render(
+        # Map Name Input
+        map_name_input_surface = self.HEADING_FONT.render(
             self.INPUT_TEXT + "█", True, Color.BLACK
         )
-        TRACK_NAME_INPUT_X = WIDTH // 2
-        TRACK_NAME_INPUT_Y = HEIGHT // 2 - self.RECTANGLE_HEIGHT // 2 + (HEIGHT * 0.15)
-        track_name_input_rect = track_name_input_surface.get_rect(
-            center=(TRACK_NAME_INPUT_X, TRACK_NAME_INPUT_Y)
+        MAP_NAME_INPUT_X = WIDTH // 2
+        MAP_NAME_INPUT_Y = HEIGHT // 2 - self.RECTANGLE_HEIGHT // 2 + (HEIGHT * 0.15)
+        map_name_input_rect = map_name_input_surface.get_rect(
+            center=(MAP_NAME_INPUT_X, MAP_NAME_INPUT_Y)
         )
-        screen.blit(track_name_input_surface, track_name_input_rect)
+        screen.blit(map_name_input_surface, map_name_input_rect)
 
         if self.INPUT_TEXT_ERROR != "":
             error_surface = self.HEADING_FONT.render(
@@ -102,11 +112,11 @@ class TrackNameWindow:
                     self.INPUT_TEXT = self.INPUT_TEXT[:-1]
                     self.INPUT_TEXT_ERROR = ""
                 else:
-                    self.INPUT_TEXT_ERROR = "Track name cannot be empty"
+                    self.INPUT_TEXT_ERROR = "Map name cannot be empty"
             elif event.key == pygame.K_RETURN:
-                if self.check_track_name():
-                    self.GAME_STATE.INPUT_TEXT = self.INPUT_TEXT
-                    self.GAME_STATE.set_state(AvailableSteps.DRAW_TRACK)
+                if self.check_map_name():
+                    self.GAME_STATE.INPUT_MAP_TEXT = self.INPUT_TEXT
+                    self.GAME_STATE.set_state(AvailableSteps.MAP)
                     self.EXIT_LOOP = True
             elif event.key == pygame.K_ESCAPE:
                 self.GAME_STATE.set_previous_state()
@@ -118,16 +128,19 @@ class TrackNameWindow:
                 else:
                     self.INPUT_TEXT_ERROR = f"Invalid character: {event.unicode}"
 
-    def check_track_name(self) -> bool:
+    def check_map_name(self) -> bool:
         if len(self.INPUT_TEXT) == 0:
-            self.INPUT_TEXT_ERROR = "Track name cannot be empty"
+            self.INPUT_TEXT_ERROR = "Map name cannot be empty"
             return False
-        available_file_types = ["png", "jpg", "jpeg"]
-        for file_type in available_file_types:
-            if os.path.exists(
-                os.path.join(TRACKS_FOLDER, f"{self.INPUT_TEXT}.{file_type}")
+        if not self.GAME_STATE.IS_TRAINING_MODE:
+            if not os.path.exists(
+                os.path.join(CHECKPOINT_FOLDER, f"{self.INPUT_TEXT}")
             ):
-                self.INPUT_TEXT_ERROR = "Track name already exists"
+                self.INPUT_TEXT_ERROR = "Map does not exist"
+                return False
+        else:
+            if os.path.exists(os.path.join(CHECKPOINT_FOLDER, f"{self.INPUT_TEXT}")):
+                self.INPUT_TEXT_ERROR = "Map name already exists"
                 return False
         return True
 

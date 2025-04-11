@@ -174,11 +174,11 @@ class SelectGenerationWindow:
 
     def get_checkpoints(self) -> None:
         path = os.path.join(CHECKPOINT_FOLDER, self.GAME_STATE.TRACK.track_name)
-        if not os.path.exists(path):
-            os.makedirs(path)
+        if self.GAME_STATE.TRACK.track_name == "":
             self.CHECKPOINTS = []
             return
-        if self.GAME_STATE.TRACK.track_name == "":
+        if not os.path.exists(path):
+            os.makedirs(path)
             self.CHECKPOINTS = []
             return
         checkpoints = os.listdir(path)
@@ -217,7 +217,7 @@ class SelectGenerationWindow:
             if button.handle_event(event):
                 if button.text == "Back":
                     if self.GAME_STATE.TRACK.IS_MAP:
-                        self.GAME_STATE.set_previous_state(steps=2)
+                        self.GAME_STATE.set_previous_state(steps=3)
                     else:
                         self.GAME_STATE.set_previous_state()
                     self.EXIT_LOOP = True

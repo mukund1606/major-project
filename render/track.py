@@ -622,13 +622,15 @@ class Track:
                 g_score[neighbor] = tentative_g_score
                 f_score[neighbor] = tentative_g_score + heuristic(neighbor, end_grid)
 
-        # Convert AI_SURFACE to PIL Image to calculate track length
-        surface_string = pygame.image.tostring(self.AI_SURFACE, "RGB")
-        surface_size = self.AI_SURFACE.get_size()
-        pil_image = Image.frombytes("RGB", surface_size, surface_string)
+        self.TRACK_LENGTH = len(path) * BOX_SIZE
 
-        # Calculate track length
-        self.TRACK_LENGTH = calculate_track_length(pil_image)
+        # Convert AI_SURFACE to PIL Image to calculate track length
+        # surface_string = pygame.image.tostring(self.AI_SURFACE, "RGB")
+        # surface_size = self.AI_SURFACE.get_size()
+        # pil_image = Image.frombytes("RGB", surface_size, surface_string)
+
+        # # Calculate track length
+        # self.TRACK_LENGTH = calculate_track_length(pil_image)
         print(
             f"Generated path from {start_point} to {end_point}. Track length: {self.TRACK_LENGTH}"
         )
